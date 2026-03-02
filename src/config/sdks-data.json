@@ -1,0 +1,201 @@
+{
+  "sdks": [
+    {
+      "id": "galaxy-ai",
+      "name": "Galaxy AI SDK",
+      "description": "Official Galaxy AI SDK for visual generation",
+      "logo": "\u2b50",
+      "category": "ai-generation",
+      "formats": [
+        "mp4",
+        "mov",
+        "png",
+        "jpg"
+      ],
+      "features": [
+        "AI-powered visual generation",
+        "Multiple model support",
+        "Real-time generation",
+        "Custom training"
+      ]
+    },
+    {
+      "id": "touchdesigner",
+      "name": "TouchDesigner",
+      "description": "Node-based visual programming",
+      "logo": "\ud83c\udfa8",
+      "category": "vj-software",
+      "formats": [
+        "toe",
+        "tox",
+        "mp4",
+        "mov",
+        "png"
+      ]
+    },
+    {
+      "id": "resolume",
+      "name": "Resolume",
+      "description": "Industry-standard VJ software",
+      "logo": "\ud83c\udfac",
+      "category": "vj-software",
+      "formats": [
+        "mov",
+        "mp4",
+        "avi",
+        "dxv"
+      ]
+    },
+    {
+      "id": "madmapper",
+      "name": "MadMapper",
+      "description": "Video mapping software",
+      "logo": "\ud83d\uddfa\ufe0f",
+      "category": "vj-software",
+      "formats": [
+        "mp4",
+        "mov",
+        "png",
+        "jpg"
+      ]
+    },
+    {
+      "id": "notch",
+      "name": "Notch",
+      "description": "Real-time graphics and VFX",
+      "logo": "\u26a1",
+      "category": "vj-software",
+      "formats": [
+        "dfx",
+        "mp4",
+        "mov",
+        "png"
+      ]
+    },
+    {
+      "id": "laseros",
+      "name": "LaserOS",
+      "description": "Laser show control",
+      "logo": "\ud83d\udd26",
+      "category": "laser-control",
+      "formats": [
+        "ild",
+        "wav",
+        "mp4"
+      ]
+    },
+    {
+      "id": "chataigne",
+      "name": "Chataigne",
+      "description": "Modular show control",
+      "logo": "\ud83c\udf9b\ufe0f",
+      "category": "show-control",
+      "formats": [
+        "json",
+        "osc",
+        "dmx"
+      ]
+    },
+    {
+      "id": "ableton",
+      "name": "Ableton Live",
+      "description": "Music production and live performance",
+      "logo": "\ud83c\udfb5",
+      "category": "audio-daw",
+      "formats": [
+        "wav",
+        "mp3",
+        "aif",
+        "als"
+      ]
+    },
+    {
+      "id": "openframeworks",
+      "name": "OpenFrameworks",
+      "description": "Creative coding toolkit",
+      "logo": "\ud83d\udd27",
+      "category": "creative-coding",
+      "formats": [
+        "cpp",
+        "h",
+        "mp4",
+        "png"
+      ]
+    }
+  ],
+  "assetTypes": [
+    {
+      "id": "loops",
+      "name": "Video Loops",
+      "formats": [
+        "mp4",
+        "mov",
+        "avi",
+        "dxv"
+      ],
+      "icon": "\ud83d\udd04"
+    },
+    {
+      "id": "shaders",
+      "name": "Shaders",
+      "formats": [
+        "glsl",
+        "frag",
+        "vert",
+        "isf"
+      ],
+      "icon": "\u2728"
+    },
+    {
+      "id": "generative",
+      "name": "Generative Visuals",
+      "formats": [
+        "toe",
+        "tox",
+        "cpp",
+        "js"
+      ],
+      "icon": "\ud83c\udf00"
+    },
+    {
+      "id": "luts",
+      "name": "LUTs",
+      "formats": [
+        "cube",
+        "3dl",
+        "lut"
+      ],
+      "icon": "\ud83c\udfa8"
+    },
+    {
+      "id": "overlays",
+      "name": "Overlays",
+      "formats": [
+        "png",
+        "mov",
+        "webm"
+      ],
+      "icon": "\ud83d\udcd0"
+    },
+    {
+      "id": "particles",
+      "name": "Particle Systems",
+      "formats": [
+        "json",
+        "toe",
+        "dfx"
+      ],
+      "icon": "\ud83d\udcab"
+    },
+    {
+      "id": "transitions",
+      "name": "Transitions",
+      "formats": [
+        "mp4",
+        "mov",
+        "glsl"
+      ],
+      "icon": "\u27a1\ufe0f"
+    }
+  ]
+}

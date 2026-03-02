@@ -1,0 +1,212 @@
+{
+  "providers": [
+    {
+      "id": "replicate",
+      "name": "Replicate",
+      "url": "https://replicate.com",
+      "signupUrl": "https://replicate.com/signin",
+      "keyUrl": "https://replicate.com/account/api-tokens",
+      "envKey": "VITE_REPLICATE_API_KEY",
+      "docs": "https://replicate.com/docs"
+    },
+    {
+      "id": "huggingface",
+      "name": "Hugging Face",
+      "url": "https://huggingface.co",
+      "signupUrl": "https://huggingface.co/join",
+      "keyUrl": "https://huggingface.co/settings/tokens",
+      "envKey": "VITE_HUGGINGFACE_API_KEY",
+      "docs": "https://huggingface.co/docs/inference-providers"
+    }
+  ],
+  "videoModels": [
+    {
+      "id": "wan-2.1-t2v",
+      "name": "Wan 2.1 (Text-to-Video)",
+      "provider": "replicate",
+      "modelId": "alibaba/wan-2.1-t2v",
+      "tier": "budget",
+      "price": "$0.05-0.10",
+      "resolution": "480p-720p",
+      "duration": "5s",
+      "fps": 16,
+      "speed": "17-57s",
+      "quality": 7,
+      "bestFor": "Quick previews, storyboarding"
+    },
+    {
+      "id": "seedance-1-lite",
+      "name": "Seedance 1 Lite",
+      "provider": "replicate",
+      "modelId": "bytedance/seedance-1-lite",
+      "tier": "budget",
+      "price": "$0.09-0.72",
+      "resolution": "480p-1080p",
+      "duration": "5-10s",
+      "fps": 24,
+      "speed": "25-70s",
+      "quality": 7.5,
+      "bestFor": "Cost-effective loops"
+    },
+    {
+      "id": "hailuo-02-fast",
+      "name": "Hailuo 02 Fast",
+      "provider": "replicate",
+      "modelId": "minimax/hailuo-02-fast",
+      "tier": "budget",
+      "price": "$0.10-0.15",
+      "resolution": "512p",
+      "duration": "6-10s",
+      "fps": 24,
+      "speed": "41-76s",
+      "quality": 8,
+      "bestFor": "Fast iteration, testing"
+    },
+    {
+      "id": "hailuo-02",
+      "name": "Hailuo 02",
+      "provider": "replicate",
+      "modelId": "minimax/hailuo-02",
+      "tier": "standard",
+      "price": "$0.10-0.50",
+      "resolution": "768p-1080p",
+      "duration": "6-10s",
+      "fps": 24,
+      "speed": "41-400s",
+      "quality": 8.5,
+      "bestFor": "High quality loops, VJ content"
+    },
+    {
+      "id": "seedance-1-pro",
+      "name": "Seedance 1 Pro",
+      "provider": "replicate",
+      "modelId": "bytedance/seedance-1-pro",
+      "tier": "standard",
+      "price": "$0.15-1.50",
+      "resolution": "480p-1080p",
+      "duration": "5-10s",
+      "fps": 24,
+      "speed": "31-95s",
+      "quality": 8.5,
+      "bestFor": "Professional VJ loops"
+    },
+    {
+      "id": "runway-gen4-turbo",
+      "name": "Runway Gen-4 Turbo",
+      "provider": "replicate",
+      "modelId": "runway/gen-4-turbo",
+      "tier": "standard",
+      "price": "$0.25-0.50",
+      "resolution": "720p",
+      "duration": "5-10s",
+      "fps": 24,
+      "speed": "22-32s",
+      "quality": 9,
+      "bestFor": "Fast high-quality generation"
+    },
+    {
+      "id": "kling-2.1",
+      "name": "Kling 2.1",
+      "provider": "replicate",
+      "modelId": "kuaishou/kling-2.1",
+      "tier": "premium",
+      "price": "$0.25-0.90",
+      "resolution": "720p-1080p",
+      "duration": "5-10s",
+      "fps": 24,
+      "speed": "122-154s",
+      "quality": 9,
+      "bestFor": "High-res festival visuals"
+    },
+    {
+      "id": "veo-3-fast",
+      "name": "Google Veo 3 Fast",
+      "provider": "replicate",
+      "modelId": "google/veo-3-fast",
+      "tier": "premium",
+      "price": "$3.20",
+      "resolution": "1080p",
+      "duration": "8s",
+      "fps": 24,
+      "speed": "59s",
+      "quality": 9.5,
+      "bestFor": "Top-tier quality, main stage"
+    },
+    {
+      "id": "veo-3",
+      "name": "Google Veo 3",
+      "provider": "replicate",
+      "modelId": "google/veo-3",
+      "tier": "ultra",
+      "price": "$6.00",
+      "resolution": "1080p",
+      "duration": "8s",
+      "fps": 24,
+      "speed": "92s",
+      "quality": 10,
+      "bestFor": "Maximum quality, hero content"
+    }
+  ],
+  "imageModels": [
+    {
+      "id": "flux-schnell",
+      "name": "FLUX Schnell",
+      "provider": "replicate",
+      "modelId": "black-forest-labs/flux-schnell",
+      "tier": "budget",
+      "price": "$0.003",
+      "resolution": "up to 1440p",
+      "speed": "1-2s",
+      "quality": 7.5,
+      "bestFor": "Rapid iteration, thumbnails"
+    },
+    {
+      "id": "flux-dev",
+      "name": "FLUX Dev",
+      "provider": "replicate",
+      "modelId": "black-forest-labs/flux-dev",
+      "tier": "standard",
+      "price": "$0.025",
+      "resolution": "up to 1440p",
+      "speed": "5-10s",
+      "quality": 8.5,
+      "bestFor": "High quality stills, overlays"
+    },
+    {
+      "id": "flux-1.1-pro",
+      "name": "FLUX 1.1 Pro",
+      "provider": "replicate",
+      "modelId": "black-forest-labs/flux-1.1-pro",
+      "tier": "premium",
+      "price": "$0.04",
+      "resolution": "up to 1440p",
+      "speed": "3-6s",
+      "quality": 9,
+      "bestFor": "Production overlays, LUT source"
+    },
+    {
+      "id": "sd-3.5-large",
+      "name": "Stable Diffusion 3.5 Large",
+      "provider": "huggingface",
+      "modelId": "stabilityai/stable-diffusion-3.5-large",
+      "tier": "standard",
+      "price": "Free tier / $0.01",
+      "resolution": "1024x1024",
+      "speed": "3-8s",
+      "quality": 8.5,
+      "bestFor": "Free-tier overlays, textures"
+    },
+    {
+      "id": "sdxl",
+      "name": "Stable Diffusion XL",
+      "provider": "huggingface",
+      "modelId": "stabilityai/stable-diffusion-xl-base-1.0",
+      "tier": "budget",
+      "price": "Free tier / $0.005",
+      "resolution": "1024x1024",
+      "speed": "2-5s",
+      "quality": 8,
+      "bestFor": "Free overlays, pattern generation"
+    }
+  ]
+}

@@ -1,0 +1,215 @@
+{
+  "creditValue": 0.01,
+  "markup": 3.0,
+  "tiers": {
+    "free": {
+      "name": "Free",
+      "monthlyPrice": 0,
+      "yearlyPrice": 0,
+      "credits": 50,
+      "allowedTiers": [
+        "free"
+      ],
+      "features": [
+        "50 credits/month",
+        "Free-tier models only",
+        "720p max",
+        "MP4 export",
+        "Watermarked",
+        "Community support"
+      ]
+    },
+    "creator": {
+      "name": "Creator",
+      "monthlyPrice": 19,
+      "yearlyPrice": 15,
+      "credits": 500,
+      "allowedTiers": [
+        "free",
+        "budget"
+      ],
+      "features": [
+        "500 credits/month",
+        "Budget models",
+        "1080p max",
+        "MP4+MOV export",
+        "No watermark",
+        "Email support",
+        "5 setlists/month"
+      ]
+    },
+    "pro": {
+      "name": "Pro",
+      "monthlyPrice": 49,
+      "yearlyPrice": 39,
+      "credits": 2000,
+      "allowedTiers": [
+        "free",
+        "budget",
+        "standard",
+        "premium"
+      ],
+      "features": [
+        "2000 credits/month",
+        "All models up to Premium",
+        "4K resolution",
+        "All export formats",
+        "API access",
+        "Priority support",
+        "Unlimited setlists",
+        "Commercial license"
+      ]
+    },
+    "studio": {
+      "name": "Studio",
+      "monthlyPrice": 149,
+      "yearlyPrice": 119,
+      "credits": 10000,
+      "allowedTiers": [
+        "free",
+        "budget",
+        "standard",
+        "premium",
+        "ultra"
+      ],
+      "features": [
+        "10000 credits/month",
+        "ALL models including Ultra",
+        "8K resolution",
+        "White-label export",
+        "Dedicated support",
+        "Custom training",
+        "Team seats (5)",
+        "SLA guarantee"
+      ]
+    }
+  },
+  "creditPacks": [
+    {
+      "credits": 100,
+      "price": 3,
+      "perCredit": 0.03,
+      "badge": null
+    },
+    {
+      "credits": 500,
+      "price": 12,
+      "perCredit": 0.024,
+      "badge": "Popular"
+    },
+    {
+      "credits": 2000,
+      "price": 39,
+      "perCredit": 0.02,
+      "badge": "Best Value"
+    },
+    {
+      "credits": 5000,
+      "price": 79,
+      "perCredit": 0.016,
+      "badge": "Pro Pack"
+    },
+    {
+      "credits": 15000,
+      "price": 199,
+      "perCredit": 0.013,
+      "badge": "Studio Pack"
+    }
+  ],
+  "modelCosts": {
+    "free": {
+      "sdxl": {
+        "providerCost": 0.005,
+        "credits": 2,
+        "yourPrice": 0.02,
+        "margin": "300%"
+      },
+      "sd-3.5-large": {
+        "providerCost": 0.01,
+        "credits": 3,
+        "yourPrice": 0.03,
+        "margin": "200%"
+      }
+    },
+    "budget": {
+      "flux-schnell": {
+        "providerCost": 0.003,
+        "credits": 2,
+        "yourPrice": 0.02,
+        "margin": "567%"
+      },
+      "wan-2.1-t2v": {
+        "providerCost": 0.08,
+        "credits": 25,
+        "yourPrice": 0.25,
+        "margin": "213%"
+      },
+      "seedance-1-lite": {
+        "providerCost": 0.09,
+        "credits": 30,
+        "yourPrice": 0.3,
+        "margin": "233%"
+      },
+      "hailuo-02-fast": {
+        "providerCost": 0.12,
+        "credits": 40,
+        "yourPrice": 0.4,
+        "margin": "233%"
+      }
+    },
+    "standard": {
+      "flux-dev": {
+        "providerCost": 0.025,
+        "credits": 8,
+        "yourPrice": 0.08,
+        "margin": "220%"
+      },
+      "hailuo-02": {
+        "providerCost": 0.3,
+        "credits": 100,
+        "yourPrice": 1.0,
+        "margin": "233%"
+      },
+      "seedance-1-pro": {
+        "providerCost": 0.5,
+        "credits": 160,
+        "yourPrice": 1.6,
+        "margin": "220%"
+      },
+      "runway-gen4-turbo": {
+        "providerCost": 0.38,
+        "credits": 125,
+        "yourPrice": 1.25,
+        "margin": "229%"
+      }
+    },
+    "premium": {
+      "flux-1.1-pro": {
+        "providerCost": 0.04,
+        "credits": 12,
+        "yourPrice": 0.12,
+        "margin": "200%"
+      },
+      "kling-2.1": {
+        "providerCost": 0.58,
+        "credits": 180,
+        "yourPrice": 1.8,
+        "margin": "210%"
+      },
+      "veo-3-fast": {
+        "providerCost": 3.2,
+        "credits": 1000,
+        "yourPrice": 10.0,
+        "margin": "213%"
+      }
+    },
+    "ultra": {
+      "veo-3": {
+        "providerCost": 6.0,
+        "credits": 1800,
+        "yourPrice": 18.0,
+        "margin": "200%"
+      }
+    }
+  }
+}
