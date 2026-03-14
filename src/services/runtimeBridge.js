@@ -51,6 +51,9 @@ function createSocketEntry(socket) {
         socket,
         pendingAcks: new Map(),
         messages: [],
+        connectionState: 'open',
+        lastError: null,
+        lastClose: null,
     }
 }
 
@@ -105,13 +108,30 @@ function registerSocketHandlers(session, entry) {
     }
 
     entry.socket.onerror = () => {
+        entry.lastError = 'Socket transport error'
         pushMessage(entry, {
             receivedAt: new Date().toISOString(),
             payload: { type: 'bridge.error', message: 'Socket transport error' },
         })
     }
 
-    entry.socket.onclose = () => {
+    entry.socket.onclose = (event) => {
+        entry.connectionState = 'closed'
+        entry.lastClose = {
+            at: new Date().toISOString(),
+            code: event?.code ?? null,
+            reason: event?.reason || '',
+            wasClean: Boolean(event?.wasClean),
+        }
+        pushMessage(entry, {
+            receivedAt: new Date().toISOString(),
+            payload: {
+                type: 'bridge.closed',
+                code: event?.code ?? null,
+                reason: event?.reason || '',
+                wasClean: Boolean(event?.wasClean),
+            },
+        })
         rejectPendingAck(entry, 'Bridge socket closed')
     }
 }
@@ -223,7 +243,6 @@ export async function syncRuntimeScene({
     const payloadHash = hashText(payloadText)
 
     const baseResult = {
-        ok: true,
         sessionId,
         target,
         endpoint,
@@ -238,18 +257,35 @@ export async function syncRuntimeScene({
         await wait(320)
         return {
             ...baseResult,
+            ok: false,
             mode: 'mock',
             ack: 'offline-no-session',
+            error: 'No active bridge session',
         }
     }
 
     const entry = bridgeSessions.get(sessionId)
-    if (!entry || !entry.socket || entry.socket.readyState !== WebSocket.OPEN) {
+    if (!entry) {
+        await wait(220)
+        return {
+            ...baseResult,
+            ok: false,
+            mode: 'mock',
+            ack: 'offline-missing-session',
+            error: 'Bridge session not found',
+        }
+    }
+
+    if (!entry.socket || entry.socket.readyState !== WebSocket.OPEN) {
         await wait(320)
         return {
             ...baseResult,
+            ok: false,
             mode: 'mock',
-            ack: 'offline-fallback',
+            ack: 'offline-socket-not-open',
+            error: entry.lastError || `Bridge socket is not open (state ${entry?.socket?.readyState ?? 'missing'})`,
+            connectionState: entry.connectionState,
+            lastClose: entry.lastClose,
         }
     }
 
@@ -266,16 +302,23 @@ export async function syncRuntimeScene({
 
         return {
             ...baseResult,
+            ok: true,
             mode: 'live',
             ack: ackPayload?.status || ackPayload?.type || 'ack',
             runtimeMessage: ackPayload,
+            connectionState: entry.connectionState,
         }
     } catch (error) {
+        const message = error instanceof Error ? error.message : 'Sync completed without ack'
         return {
             ...baseResult,
+            ok: false,
             mode: 'live',
             ack: 'sent-no-ack',
-            warning: error instanceof Error ? error.message : 'Sync completed without ack',
+            error: message,
+            warning: message,
+            connectionState: entry.connectionState,
+            lastClose: entry.lastClose,
         }
     }
 }

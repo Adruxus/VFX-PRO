@@ -105,6 +105,8 @@ const SUPPORTED_SPRITE_FILE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp']
 const SUPPORTED_PREVIEW_FILE_EXTENSIONS = [...SUPPORTED_MODEL_FILE_EXTENSIONS, ...SUPPORTED_SPRITE_FILE_EXTENSIONS]
 const MAP_ASSET_PATTERN = /(map|terrain|village|city|dungeon|level|tile|road|street|environment|floor|wall|building|house|town|plaza)/i
 const MAP_PREVIEW_LIMIT = 72
+const LIVE_CONTROL_UPDATE_THROTTLE_MS = 33
+const LIVE_CONTROL_OSC_THROTTLED_ADDRESSES = new Set(['/vfx/playhead', '/vfx/layer/value'])
 const PERFORMANCE_BUDGET_PRESETS = {
     performance: { drawCalls: 140, vramMb: 2048, minFps: 58, maxAssets: 50 },
     quality: { drawCalls: 260, vramMb: 4096, minFps: 45, maxAssets: 100 },
@@ -220,6 +222,51 @@ function slugifyForPath(value) {
     )
 }
 
+function hashStableText(value) {
+    const text = String(value || '')
+    let hash = 0
+    for (let index = 0; index < text.length; index += 1) {
+        hash = (hash << 5) - hash + text.charCodeAt(index)
+        hash |= 0
+    }
+    return Math.abs(hash).toString(36)
+}
+
+function toImportSlug(asset, { separator = '-', maxBaseLength = 42 } = {}) {
+    const baseSlug = slugifyForPath(asset?.title || asset?.id || 'asset').slice(0, maxBaseLength) || 'asset'
+    const identitySeed = [
+        asset?.sourceAssetId || '',
+        asset?.modelUrl || '',
+        asset?.renderUrl || '',
+        asset?.sourceListing || '',
+        asset?.fileExt || '',
+    ]
+        .filter(Boolean)
+        .join('|')
+    const uniqueSeed = identitySeed || asset?.id || `${baseSlug}|${asset?.creator || ''}`
+    const suffix = hashStableText(uniqueSeed).slice(0, 8) || '0'
+    return `${baseSlug}${separator}${suffix}`
+}
+
+function isContinuousLiveControlMessage(message) {
+    if (!message || typeof message !== 'object') return false
+    if (message.protocol === 'midi') return message.messageType === 'cc'
+    if (message.protocol !== 'osc' || message.messageType !== 'incoming') return false
+    return LIVE_CONTROL_OSC_THROTTLED_ADDRESSES.has(String(message?.payload?.address || ''))
+}
+
+function getLiveControlMessageBufferKey(message) {
+    if (message?.protocol === 'midi') {
+        const channel = Number(message?.channel) || 0
+        const controller = Number(message?.controller) || 0
+        return `midi:cc:${channel}:${controller}`
+    }
+    if (message?.protocol === 'osc') {
+        return `osc:${String(message?.payload?.address || 'incoming')}`
+    }
+    return `other:${String(message?.protocol || 'unknown')}:${String(message?.messageType || 'message')}`
+}
+
 function parseResolution(value) {
     const [widthRaw, heightRaw] = String(value || '').split('x')
     const width = Number(widthRaw)
@@ -292,7 +339,7 @@ function toOriginVector(position) {
 }
 
 function toUnityImportPath(asset) {
-    const slug = slugifyForPath(asset.title || asset.id)
+    const slug = toImportSlug(asset)
     const root = asset.sourceAssetId ? 'Assets/VFXStudio/External/LicensedLibrary' : 'Assets/VFXStudio/External/LocalUploads'
     const folder = `${root}/${slug}`
     if (asset.kind === 'sprite') return `${folder}/${slug}.${asset.fileExt || 'png'}`
@@ -300,7 +347,7 @@ function toUnityImportPath(asset) {
 }
 
 function toUnrealImportPath(asset) {
-    const slug = slugifyForPath(asset.title || asset.id).replace(/-/g, '_')
+    const slug = toImportSlug(asset).replace(/-/g, '_')
     const root = asset.sourceAssetId ? '/Game/VFXStudio/External/LicensedLibrary' : '/Game/VFXStudio/External/LocalUploads'
     if (asset.kind === 'sprite') return `${root}/T_${slug}.T_${slug}`
     return `${root}/SM_${slug}.SM_${slug}`
@@ -567,6 +614,8 @@ export default function Engines() {
     const selectedLayerIdRef = useRef(selectedLayerId)
     const sceneDurationRef = useRef(scene.duration)
     const controlSessionRef = useRef(null)
+    const throttledControlBufferRef = useRef(new Map())
+    const throttledControlTimerRef = useRef(null)
 
     const selectedLayer = useMemo(() => scene.layers.find((item) => item.id === selectedLayerId) || null, [scene.layers, selectedLayerId])
     const selectedMidiProfile = useMemo(
@@ -844,6 +893,16 @@ export default function Engines() {
             }
         }
     }, [])
+    useEffect(() => {
+        const bufferedMessages = throttledControlBufferRef.current
+        return () => {
+            if (throttledControlTimerRef.current) {
+                clearTimeout(throttledControlTimerRef.current)
+                throttledControlTimerRef.current = null
+            }
+            bufferedMessages.clear()
+        }
+    }, [])
     const log = (message) => setBridgeLogs((prev) => [`${new Date().toLocaleTimeString()} ${message}`, ...prev].slice(0, 12))
     const logControl = (message) => setControlLogs((prev) => [`${new Date().toLocaleTimeString()} ${message}`, ...prev].slice(0, 14))
 
@@ -1053,6 +1112,29 @@ export default function Engines() {
         if (address === '/vfx/layer/toggle') {
             toggleSelectedLayer()
             logControl(`OSC ${address} -> toggled selected layer visibility`)
+        }
+    }
+
+    const flushThrottledControlMessages = () => {
+        throttledControlTimerRef.current = null
+        const buffered = throttledControlBufferRef.current
+        if (!buffered.size) return
+        const pendingMessages = [...buffered.values()]
+        buffered.clear()
+        for (const message of pendingMessages) {
+            applyLiveControlMessage(message)
+        }
+    }
+
+    const handleIncomingLiveControlMessage = (message) => {
+        if (!isContinuousLiveControlMessage(message)) {
+            applyLiveControlMessage(message)
+            return
+        }
+        const key = getLiveControlMessageBufferKey(message)
+        throttledControlBufferRef.current.set(key, message)
+        if (!throttledControlTimerRef.current) {
+            throttledControlTimerRef.current = setTimeout(flushThrottledControlMessages, LIVE_CONTROL_UPDATE_THROTTLE_MS)
         }
     }
 
@@ -1683,8 +1765,13 @@ export default function Engines() {
             setBridgeState('connecting')
             const session = await connectRuntimeBridge({ target: bridgeTarget, endpoint: bridgeEndpoint, allowMockFallback: allowMock })
             setBridgeSession(session)
+            if (session.mode === 'mock') {
+                setBridgeState('degraded')
+                log(`connected mock: ${session.reason || 'bridge fallback active'}`)
+                return
+            }
             setBridgeState('connected')
-            log(`connected ${session.mode}`)
+            log('connected live')
         } catch (error) {
             setBridgeState('error')
             log(error instanceof Error ? error.message : 'connect failed')
@@ -1695,8 +1782,15 @@ export default function Engines() {
         if (!canUseRuntimeBridge || !bridgeSession) return
         setBridgeState('syncing')
         const result = await syncRuntimeScene({ sessionId: bridgeSession.sessionId, target: bridgeTarget, endpoint: bridgeEndpoint, scene })
-        setBridgeState('connected')
-        log(`sync ${result.mode} ${result.payloadHash}`)
+        if (result.ok) {
+            setBridgeState('connected')
+            log(`sync ${result.mode} ${result.payloadHash}`)
+            return
+        }
+        setBridgeState(result.mode === 'mock' ? 'degraded' : 'error')
+        const reason = result.error || result.warning || 'runtime bridge sync failed'
+        log(`sync failed (${result.ack || 'no-ack'}): ${reason}`)
+        toast.error(`Runtime sync failed: ${reason}`)
     }
 
     const disconnectBridge = async () => {
@@ -1718,12 +1812,17 @@ export default function Engines() {
                 await disconnectLiveControl({ sessionId: controlSession.sessionId })
                 setControlSession(null)
             }
+            if (throttledControlTimerRef.current) {
+                clearTimeout(throttledControlTimerRef.current)
+                throttledControlTimerRef.current = null
+            }
+            throttledControlBufferRef.current.clear()
             setControlState('connecting')
             if (controlProtocol === 'midi') {
                 const session = await connectMidiControl({
                     inputId: midiInputId === 'auto' ? undefined : midiInputId,
                     allowMockFallback: controlAllowMock,
-                    onMessage: applyLiveControlMessage,
+                    onMessage: handleIncomingLiveControlMessage,
                 })
                 setControlSession(session)
                 setControlState('connected')
@@ -1737,7 +1836,7 @@ export default function Engines() {
             const session = await connectOscControl({
                 endpoint: controlEndpoint,
                 allowMockFallback: controlAllowMock,
-                onMessage: applyLiveControlMessage,
+                onMessage: handleIncomingLiveControlMessage,
             })
             setControlSession(session)
             setControlState('connected')
@@ -1751,6 +1850,11 @@ export default function Engines() {
 
     const disconnectLiveControlSession = async () => {
         if (!controlSession) return
+        if (throttledControlTimerRef.current) {
+            clearTimeout(throttledControlTimerRef.current)
+            throttledControlTimerRef.current = null
+        }
+        throttledControlBufferRef.current.clear()
         await disconnectLiveControl({ sessionId: controlSession.sessionId })
         setControlSession(null)
         setControlState('disconnected')
@@ -2703,7 +2807,11 @@ export default function Engines() {
                                             <Button onClick={connectBridge} disabled={bridgeState === 'connecting' || !canUseRuntimeBridge}>
                                                 Connect
                                             </Button>
-                                            <Button variant='outline' onClick={syncBridge} disabled={!bridgeSession || !canUseRuntimeBridge}>
+                                            <Button
+                                                variant='outline'
+                                                onClick={syncBridge}
+                                                disabled={!bridgeSession || bridgeSession.mode !== 'live' || bridgeState === 'syncing' || !canUseRuntimeBridge}
+                                            >
                                                 Sync Scene
                                             </Button>
                                             <Button variant='ghost' onClick={disconnectBridge} disabled={!bridgeSession}>
