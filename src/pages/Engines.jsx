@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -105,6 +105,10 @@ const SUPPORTED_SPRITE_FILE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp']
 const SUPPORTED_PREVIEW_FILE_EXTENSIONS = [...SUPPORTED_MODEL_FILE_EXTENSIONS, ...SUPPORTED_SPRITE_FILE_EXTENSIONS]
 const MAP_ASSET_PATTERN = /(map|terrain|village|city|dungeon|level|tile|road|street|environment|floor|wall|building|house|town|plaza)/i
 const MAP_PREVIEW_LIMIT = 72
+const ASSET_PICKER_PAGE_SIZE = 80
+const ASSET_PICKER_MAX_RESULTS = 640
+const ENGINE_EDITOR_SESSION_STORAGE_KEY = 'vfx_pro_engine_editor_session_v1'
+const ENGINE_EDITOR_AUTOSAVE_DEBOUNCE_MS = 1200
 const LIVE_CONTROL_UPDATE_THROTTLE_MS = 33
 const LIVE_CONTROL_OSC_THROTTLED_ADDRESSES = new Set(['/vfx/playhead', '/vfx/layer/value'])
 const PERFORMANCE_BUDGET_PRESETS = {
@@ -139,6 +143,13 @@ function toPreviewUrl(value) {
     return encodeURI(normalized)
 }
 
+function formatTimestampLabel(value) {
+    if (!value) return 'Not saved yet'
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return 'Not saved yet'
+    return date.toLocaleString()
+}
+
 function getResourcePath(value) {
     const normalized = String(value || '').split('?')[0]
     const idx = normalized.lastIndexOf('/')
@@ -159,6 +170,24 @@ function normalizeUploadFileName(value) {
 
 function isBlobUrl(value) {
     return typeof value === 'string' && value.startsWith('blob:')
+}
+
+function toPersistedPreviewAsset(asset) {
+    if (!asset || typeof asset !== 'object') return null
+    if (isBlobUrl(asset.modelUrl)) return null
+    const modelUrl = typeof asset.modelUrl === 'string' ? asset.modelUrl : ''
+    if (!modelUrl) return null
+
+    let uploadFileMap = undefined
+    if (asset.uploadFileMap && typeof asset.uploadFileMap === 'object') {
+        const filteredEntries = Object.entries(asset.uploadFileMap).filter(([, value]) => typeof value === 'string' && !isBlobUrl(value))
+        if (filteredEntries.length > 0) uploadFileMap = Object.fromEntries(filteredEntries)
+    }
+
+    return {
+        ...asset,
+        uploadFileMap,
+    }
 }
 
 function getBlobUrlsFromAsset(asset) {
@@ -571,14 +600,20 @@ export default function Engines() {
     const [recordingState, setRecordingState] = useState('idle')
     const [recordedClipUrl, setRecordedClipUrl] = useState(null)
     const [assetSearch, setAssetSearch] = useState('')
+    const deferredAssetSearch = useDeferredValue(assetSearch)
+    const [assetKindFilter, setAssetKindFilter] = useState('all')
+    const [assetPickerLimit, setAssetPickerLimit] = useState(ASSET_PICKER_PAGE_SIZE)
     const [selectedPreviewAssetId, setSelectedPreviewAssetId] = useState('')
     const [previewAssets, setPreviewAssets] = useState([])
     const [selectedOutlinerIds, setSelectedOutlinerIds] = useState([])
+    const [activeEditorTab, setActiveEditorTab] = useState('editor')
     const [showShortcutOverlay, setShowShortcutOverlay] = useState(false)
     const [timelineSnapEnabled, setTimelineSnapEnabled] = useState(true)
     const [timelineSnapStep, setTimelineSnapStep] = useState('0.25')
     const [licensedManifest, setLicensedManifest] = useState([])
     const [manifestLoadState, setManifestLoadState] = useState('loading')
+    const [sessionLoadState, setSessionLoadState] = useState('checking')
+    const [lastSessionSavedAt, setLastSessionSavedAt] = useState(null)
 
     const [bridgeTarget, setBridgeTarget] = useState('unreal')
     const [bridgeEndpoint, setBridgeEndpoint] = useState(getDefaultRuntimeEndpoint('unreal'))
@@ -616,6 +651,7 @@ export default function Engines() {
     const controlSessionRef = useRef(null)
     const throttledControlBufferRef = useRef(new Map())
     const throttledControlTimerRef = useRef(null)
+    const sessionHydratedRef = useRef(false)
 
     const selectedLayer = useMemo(() => scene.layers.find((item) => item.id === selectedLayerId) || null, [scene.layers, selectedLayerId])
     const selectedMidiProfile = useMemo(
@@ -682,15 +718,28 @@ export default function Engines() {
         }
         return totals
     }, [licensedRenderableAssets])
-    const filteredPreviewAssetOptions = useMemo(() => {
-        const query = assetSearch.trim().toLowerCase()
-        const filtered = query
-            ? licensedRenderableAssets.filter(
-                  (item) => item.title.toLowerCase().includes(query) || item.creator.toLowerCase().includes(query)
-              )
-            : licensedRenderableAssets
-        return filtered.slice(0, 80)
-    }, [assetSearch, licensedRenderableAssets])
+    const assetPickerResult = useMemo(() => {
+        const query = deferredAssetSearch.trim().toLowerCase()
+        const filtered = licensedRenderableAssets.filter((item) => {
+            const ext = String(item.fileExt || '').toLowerCase()
+            if (assetKindFilter === 'sprite' && item.kind !== 'sprite') return false
+            if (assetKindFilter === 'model' && item.kind === 'sprite') return false
+            if (assetKindFilter === 'map' && !isMapAssetCandidate(item)) return false
+            if (!query) return true
+            const haystack = `${item.title || ''} ${item.creator || ''} ${item.sourcePack || ''} ${item.relativePath || ''} ${ext}`.toLowerCase()
+            return haystack.includes(query)
+        })
+        const safeLimit = clamp(assetPickerLimit, ASSET_PICKER_PAGE_SIZE, ASSET_PICKER_MAX_RESULTS)
+        const visible = filtered.slice(0, safeLimit)
+        return {
+            total: filtered.length,
+            visible,
+            hasMore: filtered.length > visible.length,
+        }
+    }, [assetKindFilter, assetPickerLimit, deferredAssetSearch, licensedRenderableAssets])
+    const filteredPreviewAssetOptions = assetPickerResult.visible
+    const totalFilteredPreviewAssetOptions = assetPickerResult.total
+    const canLoadMorePreviewAssetOptions = assetPickerResult.hasMore
     const selectedPreviewAsset = useMemo(
         () => filteredPreviewAssetOptions.find((item) => item.id === selectedPreviewAssetId) || null,
         [filteredPreviewAssetOptions, selectedPreviewAssetId]
@@ -826,6 +875,117 @@ export default function Engines() {
             controller.abort()
         }
     }, [])
+    useEffect(() => {
+        let restored = false
+        if (typeof window !== 'undefined') {
+            try {
+                const raw = window.localStorage.getItem(ENGINE_EDITOR_SESSION_STORAGE_KEY)
+                if (raw) {
+                    const parsed = JSON.parse(raw)
+                    if (parsed && typeof parsed === 'object') {
+                        if (parsed.scene && typeof parsed.scene === 'object') setScene(parsed.scene)
+                        if (Array.isArray(parsed.playhead) && Number.isFinite(Number(parsed.playhead[0]))) {
+                            setPlayhead([Math.max(0, Number(parsed.playhead[0]))])
+                        }
+                        if (typeof parsed.selectedLayerId === 'string' && parsed.selectedLayerId) setSelectedLayerId(parsed.selectedLayerId)
+                        if (typeof parsed.selectedNodeId === 'string' && parsed.selectedNodeId) setSelectedNodeId(parsed.selectedNodeId)
+                        if (typeof parsed.scenePresetId === 'string' && SCENE_PRESETS.some((preset) => preset.id === parsed.scenePresetId)) {
+                            setScenePresetId(parsed.scenePresetId)
+                        }
+                        if (typeof parsed.viewportQuality === 'string' && ['performance', 'quality', 'cinematic'].includes(parsed.viewportQuality)) {
+                            setViewportQuality(parsed.viewportQuality)
+                        }
+                        if (
+                            typeof parsed.outputResolution === 'string' &&
+                            OUTPUT_RESOLUTION_OPTIONS.some((option) => option.value === parsed.outputResolution)
+                        ) {
+                            setOutputResolution(parsed.outputResolution)
+                        }
+                        if (Array.isArray(parsed.clipDuration) && Number.isFinite(Number(parsed.clipDuration[0]))) {
+                            setClipDuration([clamp(Number(parsed.clipDuration[0]), 2, 30)])
+                        }
+                        if (typeof parsed.assetSearch === 'string') setAssetSearch(parsed.assetSearch.slice(0, 160))
+                        if (typeof parsed.assetKindFilter === 'string' && ['all', 'model', 'sprite', 'map'].includes(parsed.assetKindFilter)) {
+                            setAssetKindFilter(parsed.assetKindFilter)
+                        }
+                        if (typeof parsed.activeEditorTab === 'string' && ['editor', 'targets'].includes(parsed.activeEditorTab)) {
+                            setActiveEditorTab(parsed.activeEditorTab)
+                        }
+                        if (Array.isArray(parsed.previewAssets)) {
+                            const nextAssets = parsed.previewAssets
+                                .map((asset) => toPersistedPreviewAsset(asset))
+                                .filter(Boolean)
+                                .slice(0, ASSET_PICKER_MAX_RESULTS)
+                                .map((asset) => ({
+                                    ...asset,
+                                    id: typeof asset.id === 'string' && asset.id ? asset.id : makeId('preview-asset'),
+                                    position:
+                                        Array.isArray(asset.position) && asset.position.length === 3
+                                            ? asset.position.map((value) => Number(value) || 0)
+                                            : [0, 0, 0],
+                                    scale: Number.isFinite(Number(asset.scale)) ? clamp(Number(asset.scale), 0.2, 4) : 1,
+                                }))
+                            setPreviewAssets(nextAssets)
+                        }
+                        if (Array.isArray(parsed.selectedOutlinerIds)) {
+                            setSelectedOutlinerIds(parsed.selectedOutlinerIds.filter((id) => typeof id === 'string').slice(0, 180))
+                        }
+                        if (typeof parsed.lastSavedAt === 'string') setLastSessionSavedAt(parsed.lastSavedAt)
+                        restored = true
+                    }
+                }
+            } catch {
+                restored = false
+            }
+        }
+        setSessionLoadState(restored ? 'restored' : 'fresh')
+        sessionHydratedRef.current = true
+    }, [])
+    useEffect(() => {
+        setAssetPickerLimit(ASSET_PICKER_PAGE_SIZE)
+    }, [assetKindFilter, deferredAssetSearch])
+    useEffect(() => {
+        if (!sessionHydratedRef.current) return
+        const timer = setTimeout(() => {
+            if (typeof window === 'undefined') return
+            try {
+                const payload = {
+                    version: 1,
+                    lastSavedAt: new Date().toISOString(),
+                    scene,
+                    playhead,
+                    selectedLayerId,
+                    selectedNodeId,
+                    scenePresetId,
+                    viewportQuality,
+                    outputResolution,
+                    clipDuration,
+                    previewAssets: previewAssets.map((asset) => toPersistedPreviewAsset(asset)).filter(Boolean),
+                    selectedOutlinerIds,
+                    assetSearch,
+                    assetKindFilter,
+                    activeEditorTab,
+                }
+                window.localStorage.setItem(ENGINE_EDITOR_SESSION_STORAGE_KEY, JSON.stringify(payload))
+                setLastSessionSavedAt(payload.lastSavedAt)
+            } catch {}
+        }, ENGINE_EDITOR_AUTOSAVE_DEBOUNCE_MS)
+        return () => clearTimeout(timer)
+    }, [
+        activeEditorTab,
+        assetKindFilter,
+        assetSearch,
+        clipDuration,
+        outputResolution,
+        playhead,
+        previewAssets,
+        scene,
+        scenePresetId,
+        selectedLayerId,
+        selectedNodeId,
+        selectedOutlinerIds,
+        viewportQuality,
+    ])
 
     useEffect(() => {
         return () => {
@@ -1756,6 +1916,49 @@ export default function Engines() {
         triggerDownload('itch-3d-asset-shortlist.json', JSON.stringify(payload, null, 2))
     }
 
+    const clearSavedEditorSnapshot = () => {
+        if (typeof window === 'undefined') return
+        window.localStorage.removeItem(ENGINE_EDITOR_SESSION_STORAGE_KEY)
+        setLastSessionSavedAt(null)
+        setSessionLoadState('fresh')
+        toast.success('Saved editor snapshot cleared.')
+    }
+
+    const resetEditorSession = () => {
+        if (recordedClipUrl) URL.revokeObjectURL(recordedClipUrl)
+        const blobUrls = new Set()
+        for (const item of previewAssetsRef.current) {
+            for (const blobUrl of getBlobUrlsFromAsset(item)) {
+                blobUrls.add(blobUrl)
+            }
+        }
+        for (const blobUrl of blobUrls) {
+            URL.revokeObjectURL(blobUrl)
+        }
+
+        setScene(defaultScene())
+        setPlayhead([0])
+        setSelectedLayerId('layer-a')
+        setSelectedNodeId('node-b')
+        setScenePresetId(SCENE_PRESETS[0].id)
+        setViewportQuality('quality')
+        setOutputResolution('3840x2160')
+        setClipDuration([8])
+        setRecordingState('idle')
+        setRecordedClipUrl(null)
+        setAssetSearch('')
+        setAssetKindFilter('all')
+        setAssetPickerLimit(ASSET_PICKER_PAGE_SIZE)
+        setSelectedPreviewAssetId('')
+        setPreviewAssets([])
+        setSelectedOutlinerIds([])
+        setActiveEditorTab('editor')
+        if (typeof window !== 'undefined') window.localStorage.removeItem(ENGINE_EDITOR_SESSION_STORAGE_KEY)
+        setLastSessionSavedAt(null)
+        setSessionLoadState('fresh')
+        toast.success('Editor session reset to defaults.')
+    }
+
     const connectBridge = async () => {
         if (!canUseRuntimeBridge) {
             toast.error(lockReason('runtimeBridge'))
@@ -1896,6 +2099,30 @@ export default function Engines() {
                                 Admin Override
                             </Badge>
                         )}
+                    </div>
+                    <div className='mx-auto max-w-3xl rounded-md border border-cyan-400/20 bg-[#081125] px-3 py-2 text-left text-xs text-slate-300'>
+                        <div className='flex flex-wrap items-center justify-between gap-2'>
+                            <p>
+                                Session: {
+                                    sessionLoadState === 'restored'
+                                        ? 'Restored previous editor workspace.'
+                                        : sessionLoadState === 'checking'
+                                          ? 'Checking local editor snapshot...'
+                                          : 'Autosave is active for this editor.'
+                                }
+                            </p>
+                            <Badge variant='outline' className='border-cyan-400/45 text-cyan-200 bg-cyan-500/10'>
+                                Last saved: {formatTimestampLabel(lastSessionSavedAt)}
+                            </Badge>
+                        </div>
+                        <div className='mt-2 flex flex-wrap gap-2'>
+                            <Button size='sm' variant='outline' onClick={resetEditorSession}>
+                                Reset Editor Session
+                            </Button>
+                            <Button size='sm' variant='ghost' onClick={clearSavedEditorSnapshot}>
+                                Clear Saved Snapshot
+                            </Button>
+                        </div>
                     </div>
                 </div>
 
@@ -2287,11 +2514,27 @@ export default function Engines() {
                                         {' '}Run <code>npm run assets:manifest</code> after adding files into <code>public/licensed-assets</code>.
                                     </div>
                                     <div className='grid gap-2'>
-                                        <Input
-                                            value={assetSearch}
-                                            onChange={(event) => setAssetSearch(event.target.value)}
-                                            placeholder='Search licensed assets'
-                                        />
+                                        <div className='grid gap-2 sm:grid-cols-2'>
+                                            <Input
+                                                value={assetSearch}
+                                                onChange={(event) => setAssetSearch(event.target.value)}
+                                                placeholder='Search by title, creator, pack, or path'
+                                            />
+                                            <Select value={assetKindFilter} onValueChange={setAssetKindFilter}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder='Filter asset type' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value='all'>All Assets</SelectItem>
+                                                    <SelectItem value='model'>Models Only</SelectItem>
+                                                    <SelectItem value='sprite'>Sprites Only</SelectItem>
+                                                    <SelectItem value='map'>Map Candidates</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className='rounded border border-cyan-500/20 bg-[#0b1730] px-2 py-1 text-[11px] text-slate-300'>
+                                            Showing {filteredPreviewAssetOptions.length} of {totalFilteredPreviewAssetOptions} filtered assets.
+                                        </div>
                                         <Select value={selectedPreviewAssetId} onValueChange={setSelectedPreviewAssetId}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Choose licensed asset' />
@@ -2304,6 +2547,28 @@ export default function Engines() {
                                                 ))}
                                             </SelectContent>
                                         </Select>
+                                        {canLoadMorePreviewAssetOptions && (
+                                            <Button
+                                                size='sm'
+                                                variant='ghost'
+                                                onClick={() =>
+                                                    setAssetPickerLimit((prev) => Math.min(prev + ASSET_PICKER_PAGE_SIZE, ASSET_PICKER_MAX_RESULTS))
+                                                }
+                                            >
+                                                Load More Assets ({totalFilteredPreviewAssetOptions - filteredPreviewAssetOptions.length} remaining)
+                                            </Button>
+                                        )}
+                                        {totalFilteredPreviewAssetOptions === 0 && (
+                                            <p className='text-[11px] text-amber-200'>No assets match this filter. Try a broader search.</p>
+                                        )}
+                                        {selectedPreviewAsset && (
+                                            <div className='rounded border border-cyan-500/20 bg-[#0b1730] px-2 py-1.5 text-[11px] text-slate-300 space-y-0.5'>
+                                                <p className='text-cyan-100 font-medium'>{selectedPreviewAsset.title}</p>
+                                                <p>
+                                                    {selectedPreviewAsset.creator} • {selectedPreviewAsset.kind} • {selectedPreviewAsset.fileExt}
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                     <div className='flex flex-wrap gap-2'>
                                         <Button variant='outline' onClick={stageSelectedAsset} disabled={!selectedPreviewAsset}>
@@ -2368,7 +2633,7 @@ export default function Engines() {
                     </CardContent>
                 </Card>
 
-                <Tabs defaultValue='editor'>
+                <Tabs value={activeEditorTab} onValueChange={setActiveEditorTab}>
                     <TabsList className='grid w-full grid-cols-2 bg-[#091327]'>
                         <TabsTrigger value='editor'>Scene Editor</TabsTrigger>
                         <TabsTrigger value='targets'>Runtime Targets</TabsTrigger>
