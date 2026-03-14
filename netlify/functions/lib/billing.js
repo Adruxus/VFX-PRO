@@ -8,12 +8,8 @@ if (!globalThis.__VJ_STUDIO_BILLING__) {
     globalThis.__VJ_STUDIO_BILLING__ = billingState
 }
 
-const SUPABASE_URL = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').replace(/\/+$/, '')
-const SUPABASE_KEY =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.SUPABASE_ACCESS_TOKEN ||
-    process.env.VITE_SUPABASE_ACCESS_TOKEN ||
-    ''
+const SUPABASE_URL = (process.env.SUPABASE_URL || '').replace(/\/+$/, '')
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ACCESS_TOKEN || ''
 const SUPABASE_TABLE = process.env.SUPABASE_BILLING_LEDGER_TABLE || 'billing_ledger_entries'
 
 function toNumeric(value) {

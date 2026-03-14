@@ -11,7 +11,9 @@ import { Slider } from '@/components/ui/slider'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import FeatureLock from '@/components/FeatureLock'
+import BubbaDeckPanel from '@/components/BubbaDeckPanel'
 import { PLAN_LABELS, useAccessControl } from '@/services/accessControl'
 import { SCENE_PRESETS } from '@/data/scenePresets'
 import { PROMPT_AUDIT_ITEMS, PROMPT_AUDIT_SCOPE, PROMPT_AUDIT_STATUS_META } from '@/data/unityUnrealPromptChecklist'
@@ -81,23 +83,100 @@ const MIDI_PROFILES = [
         description: 'CC1/CC74 playhead, CC7/CC11 selected-layer value, Note C1 toggles layer visibility.',
     },
     {
-        id: 'open-turntable',
-        label: 'Open Turntable (CS335)',
+        id: 'bubba-dj',
+        label: 'BuBBa Deck',
         description:
-            'Cue Note 0x0C adds a keyframe, Play Note 0x0B toggles layer visibility, CC0x21 jog scrubs playhead, CC0x19 tempo remaps FPS, CC0x20 controls selected-layer value.',
+            'Cue Note 0x0C adds a keyframe, Play Note 0x0B toggles selected layer, CC0x21 jog scrubs playhead, CC0x19 tempo remaps FPS, CC0x20 maps deck crossfader.',
     },
 ]
 
-const OPEN_TURNTABLE_MAP = {
+const BUBBA_DJ_MAP = {
     cueNote: 0x0c,
     playNote: 0x0b,
     jogCc: 0x21,
     tempoCc: 0x19,
-    volumeCc: 0x20,
+    crossfaderCc: 0x20,
+    lowEqCc: 0x16,
+    highEqCc: 0x17,
 }
+
+const SUPPORTED_MODEL_FILE_EXTENSIONS = ['glb', 'gltf', 'fbx', 'obj']
+const SUPPORTED_SPRITE_FILE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp']
+const SUPPORTED_PREVIEW_FILE_EXTENSIONS = [...SUPPORTED_MODEL_FILE_EXTENSIONS, ...SUPPORTED_SPRITE_FILE_EXTENSIONS]
+const MAP_ASSET_PATTERN = /(map|terrain|village|city|dungeon|level|tile|road|street|environment|floor|wall|building|house|town|plaza)/i
+const MAP_PREVIEW_LIMIT = 72
+const PERFORMANCE_BUDGET_PRESETS = {
+    performance: { drawCalls: 140, vramMb: 2048, minFps: 58, maxAssets: 50 },
+    quality: { drawCalls: 260, vramMb: 4096, minFps: 45, maxAssets: 100 },
+    cinematic: { drawCalls: 360, vramMb: 6144, minFps: 32, maxAssets: 160 },
+}
+const SHORTCUT_ITEMS = [
+    { keys: '?', action: 'Toggle keyboard shortcut overlay' },
+    { keys: 'Delete / Backspace', action: 'Remove selected outliner items' },
+    { keys: 'Ctrl/Cmd + D', action: 'Duplicate selected staged assets' },
+    { keys: 'Shift + A', action: 'Add selected licensed asset to preview' },
+    { keys: 'K', action: 'Add keyframe to selected layer at playhead' },
+    { keys: 'Escape', action: 'Clear outliner selection / close overlay' },
+]
 
 function makeId(prefix) {
     return `${prefix}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+function getFileExt(value) {
+    const normalized = String(value || '').split('?')[0]
+    const idx = normalized.lastIndexOf('.')
+    if (idx === -1) return ''
+    return normalized.slice(idx + 1).toLowerCase()
+}
+
+function toPreviewUrl(value) {
+    const normalized = String(value || '').trim()
+    if (!normalized) return ''
+    if (/^(blob:|data:)/i.test(normalized)) return normalized
+    return encodeURI(normalized)
+}
+
+function getResourcePath(value) {
+    const normalized = String(value || '').split('?')[0]
+    const idx = normalized.lastIndexOf('/')
+    if (idx === -1) return ''
+    return normalized.slice(0, idx + 1)
+}
+
+function normalizeUploadFileName(value) {
+    const normalized = String(value || '').replace(/\\/g, '/')
+    const leaf = normalized.slice(normalized.lastIndexOf('/') + 1)
+    if (!leaf) return ''
+    try {
+        return decodeURIComponent(leaf).toLowerCase()
+    } catch {
+        return leaf.toLowerCase()
+    }
+}
+
+function isBlobUrl(value) {
+    return typeof value === 'string' && value.startsWith('blob:')
+}
+
+function getBlobUrlsFromAsset(asset) {
+    const urls = new Set()
+    if (isBlobUrl(asset?.modelUrl)) urls.add(asset.modelUrl)
+    if (asset?.uploadFileMap && typeof asset.uploadFileMap === 'object') {
+        for (const value of Object.values(asset.uploadFileMap)) {
+            if (isBlobUrl(value)) urls.add(value)
+        }
+    }
+    return urls
+}
+
+function assetReferencesBlobUrl(asset, blobUrl) {
+    if (!asset || !blobUrl) return false
+    if (asset.modelUrl === blobUrl) return true
+    if (asset?.uploadFileMap && typeof asset.uploadFileMap === 'object') {
+        return Object.values(asset.uploadFileMap).some((value) => value === blobUrl)
+    }
+    return false
 }
 
 function inferPreviewAssetType(title) {
@@ -116,6 +195,19 @@ function getPreviewAssetPosition(index) {
     const col = index % columns
     const row = Math.floor(index / columns)
     return [-5.2 + col * spacing, 0, 4 + row * spacing]
+}
+
+function getMapPreviewAssetPosition(index) {
+    const columns = 12
+    const spacing = 3
+    const col = index % columns
+    const row = Math.floor(index / columns)
+    return [-16.5 + col * spacing, 0, -14 + row * spacing]
+}
+
+function isMapAssetCandidate(asset) {
+    const haystack = `${asset?.title || ''} ${asset?.relativePath || ''}`
+    return MAP_ASSET_PATTERN.test(haystack)
 }
 
 function slugifyForPath(value) {
@@ -140,6 +232,50 @@ function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value))
 }
 
+function normalizeTimelineValue(value, { duration, snapEnabled = true, snapStep = 0.25 }) {
+    const numeric = Number(value)
+    if (!Number.isFinite(numeric)) return 0
+    const maxDuration = Math.max(0.1, Number(duration) || 1)
+    const clamped = clamp(numeric, 0, maxDuration)
+    if (!snapEnabled) return Number(clamped.toFixed(3))
+    const step = Math.max(0.01, Number(snapStep) || 0.25)
+    const snapped = Math.round(clamped / step) * step
+    return Number(clamp(snapped, 0, maxDuration).toFixed(3))
+}
+
+function ensureLayerClips(layer, durationSeconds = 90) {
+    const duration = Math.max(0.1, Number(durationSeconds) || 90)
+    const clips = Array.isArray(layer?.clips)
+        ? layer.clips
+              .map((clip) => {
+                  if (!clip || typeof clip !== 'object') return null
+                  const start = normalizeTimelineValue(clip.start ?? 0, { duration, snapEnabled: true, snapStep: 0.01 })
+                  const end = normalizeTimelineValue(clip.end ?? duration, { duration, snapEnabled: true, snapStep: 0.01 })
+                  if (end <= start) return null
+                  return {
+                      id: clip.id || makeId('clip'),
+                      name: clip.name || 'Clip',
+                      start,
+                      end,
+                      enabled: clip.enabled !== false,
+                      blend: clip.blend || 'normal',
+                  }
+              })
+              .filter(Boolean)
+        : []
+    if (clips.length > 0) return clips
+    return [
+        {
+            id: makeId('clip'),
+            name: `${layer?.name || 'Layer'} Clip`,
+            start: 0,
+            end: Number(duration.toFixed(3)),
+            enabled: true,
+            blend: 'normal',
+        },
+    ]
+}
+
 function toNormalizedValue(value) {
     const numeric = Number(value)
     if (!Number.isFinite(numeric)) return null
@@ -157,14 +293,16 @@ function toOriginVector(position) {
 
 function toUnityImportPath(asset) {
     const slug = slugifyForPath(asset.title || asset.id)
-    const root = asset.sourceAssetId ? 'Assets/VFXStudio/External/Itch3D' : 'Assets/VFXStudio/External/LocalUploads'
+    const root = asset.sourceAssetId ? 'Assets/VFXStudio/External/LicensedLibrary' : 'Assets/VFXStudio/External/LocalUploads'
     const folder = `${root}/${slug}`
+    if (asset.kind === 'sprite') return `${folder}/${slug}.${asset.fileExt || 'png'}`
     return `${folder}/${slug}.prefab`
 }
 
 function toUnrealImportPath(asset) {
     const slug = slugifyForPath(asset.title || asset.id).replace(/-/g, '_')
-    const root = asset.sourceAssetId ? '/Game/VFXStudio/External/Itch3D' : '/Game/VFXStudio/External/LocalUploads'
+    const root = asset.sourceAssetId ? '/Game/VFXStudio/External/LicensedLibrary' : '/Game/VFXStudio/External/LocalUploads'
+    if (asset.kind === 'sprite') return `${root}/T_${slug}.T_${slug}`
     return `${root}/SM_${slug}.SM_${slug}`
 }
 
@@ -176,13 +314,14 @@ function buildUnityImportManifest({ scene, presetId, previewAssets, outputResolu
         source_asset_id: asset.sourceAssetId || null,
         title: asset.title,
         creator: asset.creator,
+        source_file_ext: asset.fileExt || null,
         preview_type: asset.previewType,
         license_status: asset.licenseStatus,
         source_listing: asset.sourceListing || null,
         proposed_prefab_path: toUnityImportPath(asset),
         stage_position: toOriginVector(asset.position),
         stage_scale: Number((asset.scale || 1).toFixed(3)),
-        source_model: asset.modelUrl ? 'local_upload' : 'itch_shortlist',
+        source_model: asset.sourceAssetId ? 'licensed_manifest' : 'local_upload',
     }))
     const stageOrigin = toOriginVector(previewAssets[0]?.position)
     const assetPaths = stagedAssets.map((item) => item.proposed_prefab_path)
@@ -201,6 +340,11 @@ function buildUnityImportManifest({ scene, presetId, previewAssets, outputResolu
             request_id: requestId,
             scene_name: scene.name,
             target: 'unity',
+            coordinate_system: {
+                up_axis: 'Y',
+                forward_axis: 'Z',
+                unit: 'meter',
+            },
             terrain: {
                 resolution: 2049,
                 world_scale: 100.0,
@@ -244,13 +388,14 @@ function buildUnrealImportManifest({ scene, presetId, previewAssets, outputResol
         source_asset_id: asset.sourceAssetId || null,
         title: asset.title,
         creator: asset.creator,
+        source_file_ext: asset.fileExt || null,
         preview_type: asset.previewType,
         license_status: asset.licenseStatus,
         source_listing: asset.sourceListing || null,
         proposed_soft_object_path: toUnrealImportPath(asset),
         stage_position: toOriginVector(asset.position),
         stage_scale: Number((asset.scale || 1).toFixed(3)),
-        source_model: asset.modelUrl ? 'local_upload' : 'itch_shortlist',
+        source_model: asset.sourceAssetId ? 'licensed_manifest' : 'local_upload',
     }))
     const stageOrigin = toOriginVector(previewAssets[0]?.position)
     const assetPaths = stagedAssets.map((item) => item.proposed_soft_object_path)
@@ -269,6 +414,11 @@ function buildUnrealImportManifest({ scene, presetId, previewAssets, outputResol
             request_id: requestId,
             scene_name: scene.name,
             target: 'unreal',
+            coordinate_system: {
+                up_axis: 'Z',
+                forward_axis: 'X',
+                unit: 'centimeter',
+            },
             terrain: {
                 resolution: 2017,
                 world_scale: 100.0,
@@ -311,8 +461,22 @@ function defaultScene() {
         fps: 60,
         engineTarget: 'unreal',
         layers: [
-            { id: 'layer-a', name: 'Background', type: 'video', visible: true, keyframes: [{ id: 'kf-a', t: 0, v: 1 }] },
-            { id: 'layer-b', name: 'FX Particles', type: 'particles', visible: true, keyframes: [{ id: 'kf-b', t: 8, v: 0.6 }] },
+            {
+                id: 'layer-a',
+                name: 'Background',
+                type: 'video',
+                visible: true,
+                keyframes: [{ id: 'kf-a', t: 0, v: 1 }],
+                clips: [{ id: 'clip-a', name: 'Background Base', start: 0, end: 90, enabled: true, blend: 'normal' }],
+            },
+            {
+                id: 'layer-b',
+                name: 'FX Particles',
+                type: 'particles',
+                visible: true,
+                keyframes: [{ id: 'kf-b', t: 8, v: 0.6 }],
+                clips: [{ id: 'clip-b', name: 'Particle Burst', start: 6, end: 84, enabled: true, blend: 'additive' }],
+            },
         ],
         nodes: [
             { id: 'node-a', type: 'TextureInput', label: 'Scene Feed' },
@@ -362,6 +526,12 @@ export default function Engines() {
     const [assetSearch, setAssetSearch] = useState('')
     const [selectedPreviewAssetId, setSelectedPreviewAssetId] = useState('')
     const [previewAssets, setPreviewAssets] = useState([])
+    const [selectedOutlinerIds, setSelectedOutlinerIds] = useState([])
+    const [showShortcutOverlay, setShowShortcutOverlay] = useState(false)
+    const [timelineSnapEnabled, setTimelineSnapEnabled] = useState(true)
+    const [timelineSnapStep, setTimelineSnapStep] = useState('0.25')
+    const [licensedManifest, setLicensedManifest] = useState([])
+    const [manifestLoadState, setManifestLoadState] = useState('loading')
 
     const [bridgeTarget, setBridgeTarget] = useState('unreal')
     const [bridgeEndpoint, setBridgeEndpoint] = useState(getDefaultRuntimeEndpoint('unreal'))
@@ -377,11 +547,13 @@ export default function Engines() {
     const [controlLogs, setControlLogs] = useState([])
     const [midiInputId, setMidiInputId] = useState('auto')
     const [midiInputOptions, setMidiInputOptions] = useState([])
-    const [midiProfileId, setMidiProfileId] = useState('open-turntable')
-    const [turntableState, setTurntableState] = useState({
+    const [midiProfileId, setMidiProfileId] = useState('bubba-dj')
+    const [deckState, setDeckState] = useState({
         jogDelta: 0,
         tempoNormalized: 0.5,
-        volumeNormalized: 0.75,
+        crossfaderNormalized: 0.5,
+        lowEqNormalized: 0.5,
+        highEqNormalized: 0.5,
         playing: false,
         cueCount: 0,
         lastSignalAt: null,
@@ -449,19 +621,124 @@ export default function Engines() {
         }
         return totals
     }, [])
+    const licensedRenderableAssets = useMemo(
+        () => licensedManifest.filter((item) => SUPPORTED_PREVIEW_FILE_EXTENSIONS.includes(String(item.fileExt || '').toLowerCase())),
+        [licensedManifest]
+    )
+    const licensedAssetCounts = useMemo(() => {
+        const totals = { models: 0, sprites: 0 }
+        for (const item of licensedRenderableAssets) {
+            if (item.kind === 'sprite') totals.sprites += 1
+            else totals.models += 1
+        }
+        return totals
+    }, [licensedRenderableAssets])
     const filteredPreviewAssetOptions = useMemo(() => {
         const query = assetSearch.trim().toLowerCase()
         const filtered = query
-            ? ITCH_3D_ASSET_SHORTLIST.filter(
+            ? licensedRenderableAssets.filter(
                   (item) => item.title.toLowerCase().includes(query) || item.creator.toLowerCase().includes(query)
               )
-            : ITCH_3D_ASSET_SHORTLIST
+            : licensedRenderableAssets
         return filtered.slice(0, 80)
-    }, [assetSearch])
+    }, [assetSearch, licensedRenderableAssets])
     const selectedPreviewAsset = useMemo(
         () => filteredPreviewAssetOptions.find((item) => item.id === selectedPreviewAssetId) || null,
         [filteredPreviewAssetOptions, selectedPreviewAssetId]
     )
+    const outlinerItems = useMemo(
+        () => [
+            ...scene.layers.map((layer) => ({
+                id: `layer:${layer.id}`,
+                type: 'layer',
+                sourceId: layer.id,
+                label: layer.name,
+                meta: layer.type,
+            })),
+            ...scene.nodes.map((node) => ({
+                id: `node:${node.id}`,
+                type: 'node',
+                sourceId: node.id,
+                label: node.label,
+                meta: node.type,
+            })),
+            ...previewAssets.map((asset) => ({
+                id: `asset:${asset.id}`,
+                type: 'asset',
+                sourceId: asset.id,
+                label: asset.title,
+                meta: asset.fileExt || asset.previewType || 'asset',
+            })),
+        ],
+        [previewAssets, scene.layers, scene.nodes]
+    )
+    const selectedOutlinerItemSet = useMemo(() => new Set(selectedOutlinerIds), [selectedOutlinerIds])
+    const selectedOutlinerLayerIds = useMemo(
+        () =>
+            selectedOutlinerIds
+                .filter((id) => id.startsWith('layer:'))
+                .map((id) => id.slice('layer:'.length))
+                .filter(Boolean),
+        [selectedOutlinerIds]
+    )
+    const selectedOutlinerNodeIds = useMemo(
+        () =>
+            selectedOutlinerIds
+                .filter((id) => id.startsWith('node:'))
+                .map((id) => id.slice('node:'.length))
+                .filter(Boolean),
+        [selectedOutlinerIds]
+    )
+    const selectedOutlinerAssetIds = useMemo(
+        () =>
+            selectedOutlinerIds
+                .filter((id) => id.startsWith('asset:'))
+                .map((id) => id.slice('asset:'.length))
+                .filter(Boolean),
+        [selectedOutlinerIds]
+    )
+    const selectedOutlinerAssets = useMemo(
+        () => previewAssets.filter((asset) => selectedOutlinerAssetIds.includes(asset.id)),
+        [previewAssets, selectedOutlinerAssetIds]
+    )
+    const averageSelectedAssetScale = useMemo(() => {
+        if (!selectedOutlinerAssets.length) return 1
+        const total = selectedOutlinerAssets.reduce((sum, asset) => sum + (Number(asset.scale) || 1), 0)
+        return Number((total / selectedOutlinerAssets.length).toFixed(2))
+    }, [selectedOutlinerAssets])
+    const selectedLayerClips = useMemo(
+        () => (selectedLayer ? ensureLayerClips(selectedLayer, scene.duration) : []),
+        [scene.duration, selectedLayer]
+    )
+    const performanceBudget = useMemo(() => {
+        const presetBudget = PERFORMANCE_BUDGET_PRESETS[viewportQuality] || PERFORMANCE_BUDGET_PRESETS.quality
+        const resolution = parseResolution(outputResolution)
+        const resolutionFactor = (resolution.x * resolution.y) / (1920 * 1080)
+        const estimatedDrawCalls = Math.round(scene.layers.length * 8 + scene.nodes.length * 3 + previewAssets.length * 6)
+        const estimatedVramMb = Math.round(previewAssets.length * 46 + scene.layers.length * 22 + resolutionFactor * 680)
+        const estimatedFps = Math.max(12, Math.round(scene.fps - estimatedDrawCalls / 8 - estimatedVramMb / 520))
+        const warnings = []
+        if (previewAssets.length > presetBudget.maxAssets) {
+            warnings.push(`Asset count ${previewAssets.length} exceeds ${presetBudget.maxAssets} for ${viewportQuality} preset.`)
+        }
+        if (estimatedDrawCalls > presetBudget.drawCalls) {
+            warnings.push(`Estimated draw calls ${estimatedDrawCalls} exceed ${presetBudget.drawCalls}.`)
+        }
+        if (estimatedVramMb > presetBudget.vramMb) {
+            warnings.push(`Estimated VRAM ${estimatedVramMb}MB exceeds ${presetBudget.vramMb}MB.`)
+        }
+        if (estimatedFps < presetBudget.minFps) {
+            warnings.push(`Estimated FPS ${estimatedFps} is below ${presetBudget.minFps} target.`)
+        }
+        return {
+            preset: viewportQuality,
+            drawCalls: estimatedDrawCalls,
+            vramMb: estimatedVramMb,
+            fps: estimatedFps,
+            thresholds: presetBudget,
+            warnings,
+        }
+    }, [outputResolution, previewAssets.length, scene.fps, scene.layers.length, scene.nodes.length, viewportQuality])
     const unityImportManifest = useMemo(
         () => buildUnityImportManifest({ scene, presetId: scenePresetId, previewAssets, outputResolution }),
         [outputResolution, previewAssets, scene, scenePresetId]
@@ -475,6 +752,31 @@ export default function Engines() {
         const canvas = canvasWrapperRef.current?.querySelector('canvas')
         if (canvas) canvasNodeRef.current = canvas
     }, [scenePresetId, viewportQuality])
+
+    useEffect(() => {
+        let active = true
+        const controller = new AbortController()
+        const loadManifest = async () => {
+            setManifestLoadState('loading')
+            try {
+                const response = await fetch('/licensed-assets/manifest.json', { signal: controller.signal })
+                if (!response.ok) throw new Error(`Manifest request failed (${response.status})`)
+                const payload = await response.json()
+                if (!active) return
+                setLicensedManifest(Array.isArray(payload) ? payload : [])
+                setManifestLoadState('ready')
+            } catch (error) {
+                if (!active || error?.name === 'AbortError') return
+                setLicensedManifest([])
+                setManifestLoadState('error')
+            }
+        }
+        loadManifest()
+        return () => {
+            active = false
+            controller.abort()
+        }
+    }, [])
 
     useEffect(() => {
         return () => {
@@ -494,9 +796,19 @@ export default function Engines() {
         }
     }, [filteredPreviewAssetOptions, selectedPreviewAssetId])
     useEffect(() => {
+        const validIds = new Set(outlinerItems.map((item) => item.id))
+        setSelectedOutlinerIds((prev) => prev.filter((id) => validIds.has(id)))
+    }, [outlinerItems])
+    useEffect(() => {
         return () => {
+            const blobUrls = new Set()
             for (const item of previewAssetsRef.current) {
-                if (typeof item.modelUrl === 'string' && item.modelUrl.startsWith('blob:')) URL.revokeObjectURL(item.modelUrl)
+                for (const blobUrl of getBlobUrlsFromAsset(item)) {
+                    blobUrls.add(blobUrl)
+                }
+            }
+            for (const blobUrl of blobUrls) {
+                URL.revokeObjectURL(blobUrl)
             }
         }
     }, [])
@@ -532,7 +844,6 @@ export default function Engines() {
             }
         }
     }, [])
-
     const log = (message) => setBridgeLogs((prev) => [`${new Date().toLocaleTimeString()} ${message}`, ...prev].slice(0, 12))
     const logControl = (message) => setControlLogs((prev) => [`${new Date().toLocaleTimeString()} ${message}`, ...prev].slice(0, 14))
 
@@ -594,8 +905,8 @@ export default function Engines() {
         if (!message || typeof message !== 'object') return
 
         if (message.protocol === 'midi') {
-            if (midiProfileId === 'open-turntable') {
-                if (message.messageType === 'cc' && message.controller === OPEN_TURNTABLE_MAP.jogCc) {
+            if (midiProfileId === 'bubba-dj') {
+                if (message.messageType === 'cc' && message.controller === BUBBA_DJ_MAP.jogCc) {
                     const jogDelta = clamp(Math.round(Number(message.value) - 64), -63, 63)
                     if (Number.isFinite(jogDelta) && jogDelta !== 0) {
                         const duration = Math.max(1, Number(sceneDurationRef.current) || 1)
@@ -604,63 +915,87 @@ export default function Engines() {
                             const next = clamp(Number((previous + jogDelta * 0.08).toFixed(2)), 0, duration)
                             return [next]
                         })
-                        setTurntableState((prev) => ({
+                        setDeckState((prev) => ({
                             ...prev,
                             jogDelta,
                             lastSignalAt: new Date().toISOString(),
                         }))
-                        logControl(`Open Turntable CC0x21 jog -> delta ${jogDelta}`)
+                        logControl(`BuBBa deck jog (CC0x21) -> delta ${jogDelta}`)
                     }
                     return
                 }
 
-                if (message.messageType === 'cc' && message.controller === OPEN_TURNTABLE_MAP.tempoCc) {
+                if (message.messageType === 'cc' && message.controller === BUBBA_DJ_MAP.tempoCc) {
                     const normalized = toNormalizedValue(message.normalized ?? message.value)
                     if (normalized == null) return
                     const fps = Math.round(24 + normalized * 96)
                     setScene((prev) => ({ ...prev, fps }))
-                    setTurntableState((prev) => ({
+                    setDeckState((prev) => ({
                         ...prev,
                         tempoNormalized: normalized,
                         lastSignalAt: new Date().toISOString(),
                     }))
-                    logControl(`Open Turntable CC0x19 tempo -> scene FPS ${fps}`)
+                    logControl(`BuBBa tempo (CC0x19) -> scene FPS ${fps}`)
                     return
                 }
 
-                if (message.messageType === 'cc' && message.controller === OPEN_TURNTABLE_MAP.volumeCc) {
+                if (message.messageType === 'cc' && message.controller === BUBBA_DJ_MAP.crossfaderCc) {
                     const normalized = toNormalizedValue(message.normalized ?? message.value)
                     if (normalized == null) return
                     setSelectedLayerValue(normalized)
-                    setTurntableState((prev) => ({
+                    setDeckState((prev) => ({
                         ...prev,
-                        volumeNormalized: normalized,
+                        crossfaderNormalized: normalized,
                         lastSignalAt: new Date().toISOString(),
                     }))
-                    logControl(`Open Turntable CC0x20 volume -> selected-layer value ${normalized.toFixed(2)}`)
+                    logControl(`BuBBa crossfader (CC0x20) -> selected-layer value ${normalized.toFixed(2)}`)
                     return
                 }
 
-                if (message.messageType === 'note_on' && message.note === OPEN_TURNTABLE_MAP.playNote) {
+                if (message.messageType === 'cc' && message.controller === BUBBA_DJ_MAP.lowEqCc) {
+                    const normalized = toNormalizedValue(message.normalized ?? message.value)
+                    if (normalized == null) return
+                    setDeckState((prev) => ({
+                        ...prev,
+                        lowEqNormalized: normalized,
+                        lastSignalAt: new Date().toISOString(),
+                    }))
+                    logControl(`BuBBa low EQ (CC0x16) -> ${normalized.toFixed(2)}`)
+                    return
+                }
+
+                if (message.messageType === 'cc' && message.controller === BUBBA_DJ_MAP.highEqCc) {
+                    const normalized = toNormalizedValue(message.normalized ?? message.value)
+                    if (normalized == null) return
+                    setDeckState((prev) => ({
+                        ...prev,
+                        highEqNormalized: normalized,
+                        lastSignalAt: new Date().toISOString(),
+                    }))
+                    logControl(`BuBBa high EQ (CC0x17) -> ${normalized.toFixed(2)}`)
+                    return
+                }
+
+                if (message.messageType === 'note_on' && message.note === BUBBA_DJ_MAP.playNote) {
                     toggleSelectedLayer()
-                    setTurntableState((prev) => ({
+                    setDeckState((prev) => ({
                         ...prev,
                         playing: !prev.playing,
                         lastSignalAt: new Date().toISOString(),
                     }))
-                    logControl('Open Turntable Note0x0B play -> toggled selected layer visibility')
+                    logControl('BuBBa play (Note0x0B) -> toggled selected layer visibility')
                     return
                 }
 
-                if (message.messageType === 'note_on' && message.note === OPEN_TURNTABLE_MAP.cueNote) {
-                    const cueValue = Number(turntableState.volumeNormalized) || 1
+                if (message.messageType === 'note_on' && message.note === BUBBA_DJ_MAP.cueNote) {
+                    const cueValue = Number(deckState.crossfaderNormalized) || 1
                     addCueKeyframeAtPlayhead(cueValue)
-                    setTurntableState((prev) => ({
+                    setDeckState((prev) => ({
                         ...prev,
                         cueCount: prev.cueCount + 1,
                         lastSignalAt: new Date().toISOString(),
                     }))
-                    logControl('Open Turntable Note0x0C cue -> added keyframe at playhead')
+                    logControl('BuBBa cue (Note0x0C) -> added keyframe at playhead')
                     return
                 }
                 return
@@ -723,8 +1058,17 @@ export default function Engines() {
 
     const addLayer = () => {
         if (!canUseEditor) return
-        const layer = { id: makeId('layer'), name: newLayerName || `${newLayerType} layer`, type: newLayerType, visible: true, keyframes: [] }
+        const layer = {
+            id: makeId('layer'),
+            name: newLayerName || `${newLayerType} layer`,
+            type: newLayerType,
+            visible: true,
+            keyframes: [],
+            clips: ensureLayerClips({ name: newLayerName || `${newLayerType} layer`, clips: [] }, scene.duration),
+        }
         setScene((prev) => ({ ...prev, layers: [...prev.layers, layer] }))
+        setSelectedLayerId(layer.id)
+        setSelectedOutlinerIds([`layer:${layer.id}`])
         setNewLayerName('')
     }
 
@@ -732,12 +1076,15 @@ export default function Engines() {
         if (!canUseEditor) return
         const node = { id: makeId('node'), type: newNodeType, label: newNodeLabel || `${newNodeType} node` }
         setScene((prev) => ({ ...prev, nodes: [...prev.nodes, node] }))
+        setSelectedNodeId(node.id)
+        setSelectedOutlinerIds([`node:${node.id}`])
         setNewNodeLabel('')
     }
 
     const removeLayer = (layerId) => {
         if (!canUseEditor || scene.layers.length <= 1) return
         setScene((prev) => ({ ...prev, layers: prev.layers.filter((item) => item.id !== layerId) }))
+        setSelectedOutlinerIds((prev) => prev.filter((item) => item !== `layer:${layerId}`))
     }
 
     const addKeyframe = () => {
@@ -756,6 +1103,7 @@ export default function Engines() {
             nodes: prev.nodes.filter((node) => node.id !== nodeId),
             links: prev.links.filter((link) => link.from !== nodeId && link.to !== nodeId),
         }))
+        setSelectedOutlinerIds((prev) => prev.filter((item) => item !== `node:${nodeId}`))
     }
 
     const addLink = () => {
@@ -770,64 +1118,431 @@ export default function Engines() {
     }
     const stageSelectedAsset = () => {
         if (!selectedPreviewAsset) return
+        const modelUrl = toPreviewUrl(selectedPreviewAsset.renderUrl)
+        const fileExt = String(selectedPreviewAsset.fileExt || getFileExt(modelUrl)).toLowerCase()
+        if (!SUPPORTED_PREVIEW_FILE_EXTENSIONS.includes(fileExt)) {
+            toast.error('Selected asset is not renderable in preview.')
+            return
+        }
+        const nextId = makeId('preview-asset')
         setPreviewAssets((prev) => [
                 ...prev,
                 {
-                    id: makeId('preview-asset'),
+                    id: nextId,
                     sourceAssetId: selectedPreviewAsset.id,
                     title: selectedPreviewAsset.title,
                     creator: selectedPreviewAsset.creator,
-                    previewType: inferPreviewAssetType(selectedPreviewAsset.title),
+                    previewType: selectedPreviewAsset.previewType || inferPreviewAssetType(selectedPreviewAsset.title),
                     position: getPreviewAssetPosition(prev.length),
                     scale: 1,
-                    licenseStatus: selectedPreviewAsset.licenseStatus,
+                    modelUrl,
+                    fileExt,
+                    kind: selectedPreviewAsset.kind || (SUPPORTED_SPRITE_FILE_EXTENSIONS.includes(fileExt) ? 'sprite' : 'model'),
+                    resourcePath: getResourcePath(modelUrl),
+                    licenseStatus: selectedPreviewAsset.licenseStatus || 'verified',
                     sourceListing: selectedPreviewAsset.sourceListing,
                 },
             ])
+        setSelectedOutlinerIds([`asset:${nextId}`])
         toast.success(`${selectedPreviewAsset.title} staged in preview.`)
+    }
+    const buildMapPreviewFromLicensedAssets = () => {
+        if (!licensedRenderableAssets.length) {
+            toast.error('Licensed manifest is empty. Run npm run assets:manifest first.')
+            return
+        }
+
+        const mapCandidates = licensedRenderableAssets
+            .filter((asset) => asset.kind === 'model' && isMapAssetCandidate(asset))
+            .slice(0, MAP_PREVIEW_LIMIT)
+
+        if (!mapCandidates.length) {
+            toast.error('No map-like assets found in the licensed manifest.')
+            return
+        }
+
+        setScenePresetId('licensed-map-assembly')
+        const mappedAssets = mapCandidates.map((asset, index) => {
+                const modelUrl = toPreviewUrl(asset.renderUrl)
+                const fileExt = String(asset.fileExt || getFileExt(modelUrl)).toLowerCase()
+                return {
+                    id: makeId('preview-map'),
+                    sourceAssetId: asset.id,
+                    title: asset.title,
+                    creator: asset.creator,
+                    previewType: asset.previewType || inferPreviewAssetType(asset.title),
+                    position: getMapPreviewAssetPosition(index),
+                    scale: asset.previewType === 'building' || asset.previewType === 'nature' ? 1.8 : 1.2,
+                    modelUrl,
+                    fileExt,
+                    kind: 'model',
+                    resourcePath: getResourcePath(modelUrl),
+                    licenseStatus: asset.licenseStatus || 'verified',
+                    sourceListing: asset.sourceListing,
+                }
+            })
+        setPreviewAssets(mappedAssets)
+        setSelectedOutlinerIds(mappedAssets.map((asset) => `asset:${asset.id}`))
+        toast.success(`Built map preview from ${mapCandidates.length} licensed map assets.`)
     }
     const removeStagedAsset = (assetId) => {
         setPreviewAssets((prev) => {
             const target = prev.find((item) => item.id === assetId)
-            if (target?.modelUrl?.startsWith('blob:')) URL.revokeObjectURL(target.modelUrl)
-            return prev.filter((item) => item.id !== assetId)
+            if (!target) return prev
+            const next = prev.filter((item) => item.id !== assetId)
+            const targetBlobUrls = getBlobUrlsFromAsset(target)
+            for (const blobUrl of targetBlobUrls) {
+                const stillUsed = next.some((item) => assetReferencesBlobUrl(item, blobUrl))
+                if (!stillUsed) URL.revokeObjectURL(blobUrl)
+            }
+            return next
         })
+        setSelectedOutlinerIds((prev) => prev.filter((item) => item !== `asset:${assetId}`))
     }
     const clearStagedAssets = () => {
         setPreviewAssets((prev) => {
+            const blobUrls = new Set()
             for (const item of prev) {
-                if (item.modelUrl?.startsWith('blob:')) URL.revokeObjectURL(item.modelUrl)
+                for (const blobUrl of getBlobUrlsFromAsset(item)) {
+                    blobUrls.add(blobUrl)
+                }
+            }
+            for (const blobUrl of blobUrls) {
+                URL.revokeObjectURL(blobUrl)
             }
             return []
         })
+        setSelectedOutlinerIds((prev) => prev.filter((item) => !item.startsWith('asset:')))
     }
     const handleModelUpload = (event) => {
-        const file = event.target.files?.[0]
+        const files = Array.from(event.target.files || [])
         event.target.value = ''
-        if (!file) return
-        const ext = file.name.split('.').pop()?.toLowerCase()
-        if (!ext || !['glb', 'gltf'].includes(ext)) {
-            toast.error('Only .glb and .gltf files are supported in the preview.')
+        if (!files.length) return
+
+        const acceptedFiles = files.filter((file) => {
+            const ext = file.name.split('.').pop()?.toLowerCase()
+            return ext && SUPPORTED_PREVIEW_FILE_EXTENSIONS.includes(ext)
+        })
+
+        if (!acceptedFiles.length) {
+            toast.error('Upload .glb, .gltf, .fbx, .obj, or sprite image files.')
             return
         }
-        const modelUrl = URL.createObjectURL(file)
-        setPreviewAssets((prev) => [
-            ...prev,
-            {
-                id: makeId('preview-upload'),
-                sourceAssetId: null,
-                title: file.name,
-                creator: 'Local Upload',
-                previewType: 'model',
-                position: getPreviewAssetPosition(prev.length),
-                scale: 1,
-                modelUrl,
-                licenseStatus: 'local',
-                sourceListing: 'local-upload',
-            },
-        ])
-        toast.success(`${file.name} uploaded to preview.`)
+
+        const uploadFileMap = {}
+        acceptedFiles.forEach((file) => {
+            const key = normalizeUploadFileName(file.name)
+            if (!key || uploadFileMap[key]) return
+            uploadFileMap[key] = URL.createObjectURL(file)
+        })
+
+        const addedIds = []
+        setPreviewAssets((prev) => {
+            const next = [...prev]
+            acceptedFiles.forEach((file) => {
+                const fileExt = file.name.split('.').pop()?.toLowerCase() || ''
+                const fileKey = normalizeUploadFileName(file.name)
+                const modelUrl = uploadFileMap[fileKey]
+                const kind = SUPPORTED_SPRITE_FILE_EXTENSIONS.includes(fileExt) ? 'sprite' : 'model'
+                const nextId = makeId('preview-upload')
+                addedIds.push(nextId)
+                next.push({
+                    id: nextId,
+                    sourceAssetId: null,
+                    title: file.name,
+                    creator: 'Local Upload',
+                    previewType: inferPreviewAssetType(file.name),
+                    position: getPreviewAssetPosition(next.length),
+                    scale: 1,
+                    modelUrl,
+                    fileExt,
+                    kind,
+                    uploadFileMap: fileExt === 'fbx' ? uploadFileMap : undefined,
+                    licenseStatus: 'local',
+                    sourceListing: 'local-upload',
+                })
+            })
+            return next
+        })
+        if (addedIds.length > 0) {
+            setSelectedOutlinerIds(addedIds.map((id) => `asset:${id}`))
+        }
+
+        if (acceptedFiles.length !== files.length) {
+            toast.warning(`Imported ${acceptedFiles.length} files. Unsupported files were skipped.`)
+        } else {
+            toast.success(`${acceptedFiles.length} file(s) uploaded to preview.`)
+        }
     }
+
+    const toggleOutlinerSelection = (itemId, { additive = false } = {}) => {
+        const normalizedId = String(itemId || '')
+        if (!normalizedId) return
+        setSelectedOutlinerIds((prev) => {
+            if (!additive) return [normalizedId]
+            if (prev.includes(normalizedId)) return prev.filter((id) => id !== normalizedId)
+            return [...prev, normalizedId]
+        })
+        if (normalizedId.startsWith('layer:')) {
+            setSelectedLayerId(normalizedId.slice('layer:'.length))
+        } else if (normalizedId.startsWith('node:')) {
+            setSelectedNodeId(normalizedId.slice('node:'.length))
+        }
+    }
+
+    const setSelectedAssetScale = (scale) => {
+        const value = clamp(Number(scale) || 1, 0.1, 10)
+        if (!selectedOutlinerAssetIds.length) return
+        setPreviewAssets((prev) =>
+            prev.map((asset) =>
+                selectedOutlinerAssetIds.includes(asset.id)
+                    ? {
+                        ...asset,
+                        scale: Number(value.toFixed(3)),
+                    }
+                    : asset
+            )
+        )
+    }
+
+    const nudgeSelectedAssets = (axis, delta) => {
+        if (!selectedOutlinerAssetIds.length) return
+        setPreviewAssets((prev) =>
+            prev.map((asset) => {
+                if (!selectedOutlinerAssetIds.includes(asset.id)) return asset
+                const position = Array.isArray(asset.position) ? [...asset.position] : [0, 0, 0]
+                if (axis === 'x') position[0] = Number((position[0] + delta).toFixed(3))
+                if (axis === 'y') position[1] = Number((position[1] + delta).toFixed(3))
+                if (axis === 'z') position[2] = Number((position[2] + delta).toFixed(3))
+                return {
+                    ...asset,
+                    position,
+                }
+            })
+        )
+    }
+
+    const setSelectedLayerVisibility = (visible) => {
+        if (!selectedOutlinerLayerIds.length) return
+        setScene((prev) => ({
+            ...prev,
+            layers: prev.layers.map((layer) =>
+                selectedOutlinerLayerIds.includes(layer.id)
+                    ? {
+                        ...layer,
+                        visible: Boolean(visible),
+                    }
+                    : layer
+            ),
+        }))
+    }
+
+    const addClipToSelectedLayer = () => {
+        if (!selectedLayer) return
+        const snapStep = Number(timelineSnapStep) || 0.25
+        const start = normalizeTimelineValue(playhead[0], { duration: scene.duration, snapEnabled: timelineSnapEnabled, snapStep })
+        const defaultLength = Math.max(0.5, snapStep * 8)
+        const end = normalizeTimelineValue(start + defaultLength, {
+            duration: scene.duration,
+            snapEnabled: timelineSnapEnabled,
+            snapStep,
+        })
+        if (end <= start) return
+        setScene((prev) => ({
+            ...prev,
+            layers: prev.layers.map((layer) => {
+                if (layer.id !== selectedLayer.id) return layer
+                const clips = ensureLayerClips(layer, prev.duration)
+                return {
+                    ...layer,
+                    clips: [
+                        ...clips,
+                        {
+                            id: makeId('clip'),
+                            name: `${layer.name} Clip ${clips.length + 1}`,
+                            start,
+                            end,
+                            enabled: true,
+                            blend: 'normal',
+                        },
+                    ],
+                }
+            }),
+        }))
+    }
+
+    const updateSelectedLayerClip = (clipId, updates = {}) => {
+        if (!selectedLayer || !clipId) return
+        const snapStep = Number(timelineSnapStep) || 0.25
+        setScene((prev) => ({
+            ...prev,
+            layers: prev.layers.map((layer) => {
+                if (layer.id !== selectedLayer.id) return layer
+                const clips = ensureLayerClips(layer, prev.duration)
+                    .map((clip) => {
+                        if (clip.id !== clipId) return clip
+                        const nextStart =
+                            updates.start == null
+                                ? clip.start
+                                : normalizeTimelineValue(updates.start, {
+                                    duration: prev.duration,
+                                    snapEnabled: timelineSnapEnabled,
+                                    snapStep,
+                                })
+                        const nextEnd =
+                            updates.end == null
+                                ? clip.end
+                                : normalizeTimelineValue(updates.end, {
+                                    duration: prev.duration,
+                                    snapEnabled: timelineSnapEnabled,
+                                    snapStep,
+                                })
+                        if (nextEnd <= nextStart) return clip
+                        return {
+                            ...clip,
+                            ...updates,
+                            start: nextStart,
+                            end: nextEnd,
+                            enabled: updates.enabled == null ? clip.enabled : Boolean(updates.enabled),
+                        }
+                    })
+                    .sort((a, b) => a.start - b.start)
+                return {
+                    ...layer,
+                    clips,
+                }
+            }),
+        }))
+    }
+
+    const removeSelectedLayerClip = (clipId) => {
+        if (!selectedLayer || !clipId) return
+        setScene((prev) => ({
+            ...prev,
+            layers: prev.layers.map((layer) => {
+                if (layer.id !== selectedLayer.id) return layer
+                const clips = ensureLayerClips(layer, prev.duration).filter((clip) => clip.id !== clipId)
+                return {
+                    ...layer,
+                    clips: clips.length > 0 ? clips : ensureLayerClips(layer, prev.duration),
+                }
+            }),
+        }))
+    }
+
+    const removeOutlinerSelection = () => {
+        if (!selectedOutlinerIds.length) return
+        const layerIds = selectedOutlinerLayerIds
+        const nodeIds = selectedOutlinerNodeIds
+        const assetIds = selectedOutlinerAssetIds
+
+        if (assetIds.length > 0) {
+            setPreviewAssets((prev) => {
+                const next = prev.filter((asset) => !assetIds.includes(asset.id))
+                for (const asset of prev) {
+                    if (!assetIds.includes(asset.id)) continue
+                    for (const blobUrl of getBlobUrlsFromAsset(asset)) {
+                        const stillUsed = next.some((item) => assetReferencesBlobUrl(item, blobUrl))
+                        if (!stillUsed) URL.revokeObjectURL(blobUrl)
+                    }
+                }
+                return next
+            })
+        }
+
+        if (layerIds.length > 0) {
+            setScene((prev) => {
+                const remaining = prev.layers.filter((layer) => !layerIds.includes(layer.id))
+                return {
+                    ...prev,
+                    layers: remaining.length > 0 ? remaining : prev.layers.slice(0, 1),
+                }
+            })
+        }
+
+        if (nodeIds.length > 0) {
+            setScene((prev) => {
+                const remainingNodes = prev.nodes.filter((node) => !nodeIds.includes(node.id))
+                const safeNodes = remainingNodes.length > 0 ? remainingNodes : prev.nodes.slice(0, 1)
+                const safeNodeIds = new Set(safeNodes.map((node) => node.id))
+                return {
+                    ...prev,
+                    nodes: safeNodes,
+                    links: prev.links.filter((link) => safeNodeIds.has(link.from) && safeNodeIds.has(link.to)),
+                }
+            })
+        }
+
+        setSelectedOutlinerIds([])
+    }
+
+    useEffect(() => {
+        const onKeyDown = (event) => {
+            if (!canUseEditor) return
+            const targetTag = String(event.target?.tagName || '').toLowerCase()
+            const isTypingTarget =
+                targetTag === 'input' ||
+                targetTag === 'textarea' ||
+                targetTag === 'select' ||
+                Boolean(event.target?.isContentEditable)
+            const key = String(event.key || '')
+            const normalized = key.toLowerCase()
+
+            if (normalized === '?') {
+                event.preventDefault()
+                setShowShortcutOverlay((prev) => !prev)
+                return
+            }
+            if (normalized === 'escape') {
+                setShowShortcutOverlay(false)
+                setSelectedOutlinerIds([])
+                return
+            }
+            if (isTypingTarget) return
+
+            if ((event.ctrlKey || event.metaKey) && normalized === 'd') {
+                event.preventDefault()
+                if (selectedOutlinerAssetIds.length === 0) return
+                setPreviewAssets((prev) => {
+                    const selected = prev.filter((asset) => selectedOutlinerAssetIds.includes(asset.id))
+                    if (!selected.length) return prev
+                    const duplicates = selected.map((asset, index) => ({
+                        ...asset,
+                        id: makeId('preview-copy'),
+                        title: `${asset.title} Copy`,
+                        position: Array.isArray(asset.position)
+                            ? [asset.position[0] + 0.9 + index * 0.1, asset.position[1], asset.position[2] + 0.9]
+                            : getPreviewAssetPosition(prev.length + index),
+                    }))
+                    return [...prev, ...duplicates]
+                })
+                toast.success(`Duplicated ${selectedOutlinerAssetIds.length} staged asset(s).`)
+                return
+            }
+
+            if (event.shiftKey && normalized === 'a') {
+                event.preventDefault()
+                stageSelectedAsset()
+                return
+            }
+
+            if (normalized === 'k') {
+                event.preventDefault()
+                addKeyframe()
+                return
+            }
+
+            if (normalized === 'delete' || normalized === 'backspace') {
+                if (selectedOutlinerIds.length === 0) return
+                event.preventDefault()
+                removeOutlinerSelection()
+            }
+        }
+
+        window.addEventListener('keydown', onKeyDown)
+        return () => window.removeEventListener('keydown', onKeyDown)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [canUseEditor, selectedOutlinerAssetIds, selectedOutlinerIds])
 
     const handleResolutionChange = (value) => {
         const option = OUTPUT_RESOLUTION_OPTIONS.find((item) => item.value === value)
@@ -1366,7 +2081,7 @@ export default function Engines() {
 
                 <Card className='bg-[#0b1730] border-cyan-400/20'>
                     <CardHeader>
-                        <CardTitle className='text-cyan-100'>Procedural Scene Preview</CardTitle>
+                        <CardTitle className='text-cyan-100'>Licensed Asset Scene Preview</CardTitle>
                         <CardDescription className='text-slate-300'>
                             {SCENE_PRESETS.find((preset) => preset.id === scenePresetId)?.description}
                         </CardDescription>
@@ -1460,20 +2175,27 @@ export default function Engines() {
                             <div className='space-y-4'>
                                 <div className='rounded-md border border-cyan-400/20 bg-[#081125] p-3 space-y-3'>
                                     <p className='text-sm text-cyan-100 font-medium'>Preview Asset Staging</p>
+                                    <div className='rounded border border-cyan-500/20 bg-[#0b1730] px-2 py-1 text-[11px] text-slate-300'>
+                                        {manifestLoadState === 'loading' && 'Loading licensed manifest...'}
+                                        {manifestLoadState === 'error' && 'Failed to load /licensed-assets/manifest.json. Run npm run assets:manifest and reload.'}
+                                        {manifestLoadState === 'ready' &&
+                                            `Licensed manifest: ${licensedRenderableAssets.length} assets (${licensedAssetCounts.models} models, ${licensedAssetCounts.sprites} sprites).`}
+                                        {' '}Run <code>npm run assets:manifest</code> after adding files into <code>public/licensed-assets</code>.
+                                    </div>
                                     <div className='grid gap-2'>
                                         <Input
                                             value={assetSearch}
                                             onChange={(event) => setAssetSearch(event.target.value)}
-                                            placeholder='Search shortlist assets'
+                                            placeholder='Search licensed assets'
                                         />
                                         <Select value={selectedPreviewAssetId} onValueChange={setSelectedPreviewAssetId}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder='Choose asset' />
+                                                <SelectValue placeholder='Choose licensed asset' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {filteredPreviewAssetOptions.map((item) => (
                                                     <SelectItem key={item.id} value={item.id}>
-                                                        {item.title} - {item.creator}
+                                                        {item.title} - {item.creator} ({item.fileExt})
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -1481,12 +2203,21 @@ export default function Engines() {
                                     </div>
                                     <div className='flex flex-wrap gap-2'>
                                         <Button variant='outline' onClick={stageSelectedAsset} disabled={!selectedPreviewAsset}>
-                                            Add Shortlist Asset To Preview
+                                            Add Licensed Asset To Preview
+                                        </Button>
+                                        <Button variant='outline' onClick={buildMapPreviewFromLicensedAssets} disabled={manifestLoadState !== 'ready'}>
+                                            Build Map From Licensed Assets
                                         </Button>
                                         <Button variant='outline' onClick={clearStagedAssets} disabled={!previewAssets.length}>
                                             Clear Preview Assets
                                         </Button>
-                                        <Input type='file' accept='.glb,.gltf' onChange={handleModelUpload} className='max-w-xs' />
+                                        <Input
+                                            type='file'
+                                            accept='.glb,.gltf,.fbx,.obj,.png,.jpg,.jpeg,.webp'
+                                            multiple
+                                            onChange={handleModelUpload}
+                                            className='max-w-xs'
+                                        />
                                     </div>
                                     <div className='flex flex-wrap gap-2'>
                                         <Button variant='outline' onClick={exportUnityImportQueue} disabled={!previewAssets.length}>
@@ -1520,7 +2251,7 @@ export default function Engines() {
                                                     </Button>
                                                 </div>
                                                 <p className='text-[11px] text-slate-400'>
-                                                    {asset.creator} | {asset.previewType}
+                                                    {asset.creator} | {asset.previewType} | {asset.fileExt || 'model'}
                                                 </p>
                                                 <p className='text-[10px] text-cyan-300'>Unity: {toUnityImportPath(asset)}</p>
                                                 <p className='text-[10px] text-fuchsia-300'>Unreal: {toUnrealImportPath(asset)}</p>
@@ -1548,6 +2279,166 @@ export default function Engines() {
                         )}
                         {canUseEditor && (
                             <>
+                                <Card className='bg-[#0b1730] border-cyan-400/20'>
+                                    <CardHeader>
+                                        <div className='flex items-center justify-between gap-3'>
+                                            <div>
+                                                <CardTitle className='text-cyan-100'>Scene Outliner + Inspector</CardTitle>
+                                                <CardDescription className='text-slate-300'>
+                                                    Multi-select objects, inspect properties, and edit groups like Unreal/Unity workflows.
+                                                </CardDescription>
+                                            </div>
+                                            <Button variant='outline' size='sm' onClick={() => setShowShortcutOverlay(true)}>
+                                                Keyboard Shortcuts
+                                            </Button>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className='grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]'>
+                                        <div className='rounded-md border border-cyan-400/20 bg-[#081125] p-3 space-y-2'>
+                                            <p className='text-sm text-cyan-100 font-medium'>Outliner</p>
+                                            <p className='text-xs text-slate-400'>Tip: Ctrl/Cmd click for multi-select.</p>
+                                            <div className='max-h-64 overflow-y-auto space-y-1 pr-1'>
+                                                {outlinerItems.map((item) => {
+                                                    const selected = selectedOutlinerItemSet.has(item.id)
+                                                    return (
+                                                        <button
+                                                            key={item.id}
+                                                            type='button'
+                                                            onClick={(event) =>
+                                                                toggleOutlinerSelection(item.id, {
+                                                                    additive: event.ctrlKey || event.metaKey || event.shiftKey,
+                                                                })
+                                                            }
+                                                            className={`w-full text-left rounded-md border px-2 py-1.5 ${
+                                                                selected
+                                                                    ? 'border-cyan-300/60 bg-cyan-500/20'
+                                                                    : 'border-cyan-500/20 bg-[#0b1730]'
+                                                            }`}
+                                                        >
+                                                            <p className='text-sm text-slate-100'>{item.label}</p>
+                                                            <p className='text-[11px] text-slate-400'>
+                                                                {item.type} • {item.meta}
+                                                            </p>
+                                                        </button>
+                                                    )
+                                                })}
+                                                {outlinerItems.length === 0 && <p className='text-xs text-slate-400'>Nothing in outliner yet.</p>}
+                                            </div>
+                                        </div>
+
+                                        <div className='rounded-md border border-cyan-400/20 bg-[#081125] p-3 space-y-3'>
+                                            <p className='text-sm text-cyan-100 font-medium'>Inspector</p>
+                                            <p className='text-xs text-slate-400'>Selected items: {selectedOutlinerIds.length}</p>
+                                            {selectedOutlinerAssetIds.length > 0 && (
+                                                <div className='space-y-2 rounded-md border border-cyan-500/20 bg-[#0b1730] p-2'>
+                                                    <p className='text-xs text-cyan-200'>Staged Assets ({selectedOutlinerAssetIds.length})</p>
+                                                    <Label className='text-xs text-slate-300'>
+                                                        Uniform scale ({averageSelectedAssetScale.toFixed(2)})
+                                                    </Label>
+                                                    <Slider
+                                                        value={[averageSelectedAssetScale]}
+                                                        onValueChange={(value) => setSelectedAssetScale(value[0])}
+                                                        min={0.1}
+                                                        max={6}
+                                                        step={0.05}
+                                                    />
+                                                    <div className='grid grid-cols-3 gap-2'>
+                                                        <Button size='sm' variant='outline' onClick={() => nudgeSelectedAssets('x', -0.5)}>
+                                                            Nudge X-
+                                                        </Button>
+                                                        <Button size='sm' variant='outline' onClick={() => nudgeSelectedAssets('z', -0.5)}>
+                                                            Nudge Z-
+                                                        </Button>
+                                                        <Button size='sm' variant='outline' onClick={() => nudgeSelectedAssets('y', 0.25)}>
+                                                            Nudge Y+
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {selectedOutlinerLayerIds.length > 0 && (
+                                                <div className='space-y-2 rounded-md border border-cyan-500/20 bg-[#0b1730] p-2'>
+                                                    <p className='text-xs text-cyan-200'>Layers ({selectedOutlinerLayerIds.length})</p>
+                                                    <div className='flex flex-wrap gap-2'>
+                                                        <Button size='sm' variant='outline' onClick={() => setSelectedLayerVisibility(true)}>
+                                                            Set Visible
+                                                        </Button>
+                                                        <Button size='sm' variant='outline' onClick={() => setSelectedLayerVisibility(false)}>
+                                                            Set Hidden
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {selectedOutlinerNodeIds.length > 0 && (
+                                                <div className='space-y-2 rounded-md border border-cyan-500/20 bg-[#0b1730] p-2'>
+                                                    <p className='text-xs text-cyan-200'>Nodes ({selectedOutlinerNodeIds.length})</p>
+                                                    <p className='text-xs text-slate-300'>Use delete to remove selected nodes and reconnect links manually.</p>
+                                                </div>
+                                            )}
+                                            {selectedOutlinerIds.length === 0 && (
+                                                <p className='text-xs text-slate-400'>Select layers, nodes, or assets from outliner to edit here.</p>
+                                            )}
+                                            <div className='flex flex-wrap gap-2'>
+                                                <Button variant='outline' size='sm' onClick={() => setSelectedOutlinerIds([])}>
+                                                    Clear Selection
+                                                </Button>
+                                                <Button variant='ghost' size='sm' onClick={removeOutlinerSelection} disabled={selectedOutlinerIds.length === 0}>
+                                                    Remove Selected
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                <Card className='bg-[#0b1730] border-cyan-400/20'>
+                                    <CardHeader>
+                                        <CardTitle className='text-cyan-100'>Performance Budget Panel</CardTitle>
+                                        <CardDescription className='text-slate-300'>
+                                            Live budget guardrails tied to viewport/export preset: {performanceBudget.preset}.
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent className='space-y-3'>
+                                        <div className='grid gap-3 md:grid-cols-4'>
+                                            <div className='rounded-md border border-cyan-500/20 bg-[#081125] px-3 py-2'>
+                                                <p className='text-[11px] text-slate-400'>Draw Calls</p>
+                                                <p className='text-lg text-cyan-100 font-semibold'>
+                                                    {performanceBudget.drawCalls} / {performanceBudget.thresholds.drawCalls}
+                                                </p>
+                                            </div>
+                                            <div className='rounded-md border border-cyan-500/20 bg-[#081125] px-3 py-2'>
+                                                <p className='text-[11px] text-slate-400'>VRAM (est)</p>
+                                                <p className='text-lg text-cyan-100 font-semibold'>
+                                                    {performanceBudget.vramMb}MB / {performanceBudget.thresholds.vramMb}MB
+                                                </p>
+                                            </div>
+                                            <div className='rounded-md border border-cyan-500/20 bg-[#081125] px-3 py-2'>
+                                                <p className='text-[11px] text-slate-400'>FPS (est)</p>
+                                                <p className='text-lg text-cyan-100 font-semibold'>
+                                                    {performanceBudget.fps} / {performanceBudget.thresholds.minFps}
+                                                </p>
+                                            </div>
+                                            <div className='rounded-md border border-cyan-500/20 bg-[#081125] px-3 py-2'>
+                                                <p className='text-[11px] text-slate-400'>Assets</p>
+                                                <p className='text-lg text-cyan-100 font-semibold'>
+                                                    {previewAssets.length} / {performanceBudget.thresholds.maxAssets}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        {performanceBudget.warnings.length > 0 ? (
+                                            <div className='rounded-md border border-amber-400/35 bg-amber-500/10 px-3 py-2 space-y-1'>
+                                                {performanceBudget.warnings.map((warning) => (
+                                                    <p key={warning} className='text-xs text-amber-200'>
+                                                        {warning}
+                                                    </p>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className='rounded-md border border-emerald-400/35 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200'>
+                                                Budget is within selected preset targets.
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+
                                 <Card className='bg-[#0b1730] border-cyan-400/20'>
                                     <CardHeader>
                                         <CardTitle className='text-cyan-100'>Timeline + Layers</CardTitle>
@@ -1579,7 +2470,11 @@ export default function Engines() {
                                                         className={`rounded-md border px-3 py-2 ${selectedLayerId === layer.id ? 'border-cyan-300/50 bg-cyan-500/15' : 'border-cyan-500/20 bg-[#0a152d]'}`}
                                                     >
                                                         <div className='flex items-center justify-between gap-2'>
-                                                            <button type='button' className='text-left' onClick={() => setSelectedLayerId(layer.id)}>
+                                                            <button
+                                                                type='button'
+                                                                className='text-left'
+                                                                onClick={() => toggleOutlinerSelection(`layer:${layer.id}`, { additive: false })}
+                                                            >
                                                                 <p className='text-sm text-white'>{layer.name}</p>
                                                                 <p className='text-xs text-slate-400'>{layer.type}</p>
                                                             </button>
@@ -1594,13 +2489,92 @@ export default function Engines() {
                                         <div className='space-y-3'>
                                             <Label>Playhead {playhead[0].toFixed(1)}s</Label>
                                             <Slider value={playhead} onValueChange={setPlayhead} min={0} max={Math.max(scene.duration, 10)} step={0.1} />
-                                            <Button onClick={addKeyframe}>Add Keyframe To Selected Layer</Button>
+                                            <div className='grid gap-2 md:grid-cols-2'>
+                                                <Button onClick={addKeyframe}>Add Keyframe To Selected Layer</Button>
+                                                <Button variant='outline' onClick={addClipToSelectedLayer}>
+                                                    Add Clip At Playhead
+                                                </Button>
+                                            </div>
+                                            <div className='grid gap-2 md:grid-cols-2'>
+                                                <div className='flex items-center gap-2 rounded-md border border-cyan-500/20 bg-[#081125] px-2 py-1.5'>
+                                                    <Switch checked={timelineSnapEnabled} onCheckedChange={setTimelineSnapEnabled} />
+                                                    <Label className='text-xs text-slate-300'>Snap enabled</Label>
+                                                </div>
+                                                <Select value={timelineSnapStep} onValueChange={setTimelineSnapStep}>
+                                                    <SelectTrigger>
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value='0.1'>0.1s</SelectItem>
+                                                        <SelectItem value='0.25'>0.25s</SelectItem>
+                                                        <SelectItem value='0.5'>0.5s</SelectItem>
+                                                        <SelectItem value='1'>1.0s</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
                                             <div className='rounded-md border border-cyan-400/20 bg-[#081125] p-3 text-xs text-slate-300 max-h-52 overflow-y-auto'>
                                                 {(selectedLayer?.keyframes || []).length === 0 && <p>No keyframes on selected layer.</p>}
                                                 {(selectedLayer?.keyframes || []).map((frame) => (
                                                     <div key={frame.id} className='flex justify-between py-1 border-b border-cyan-500/10'>
                                                         <span>{frame.t}s</span>
                                                         <span>value {frame.v}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className='rounded-md border border-cyan-400/20 bg-[#081125] p-3 text-xs text-slate-300 max-h-64 overflow-y-auto space-y-2'>
+                                                <p className='text-cyan-200'>Track Clips (non-destructive)</p>
+                                                {selectedLayerClips.length === 0 && <p>No clips for selected layer.</p>}
+                                                {selectedLayerClips.map((clip) => (
+                                                    <div key={clip.id} className='rounded border border-cyan-500/20 bg-[#0b1730] p-2 space-y-2'>
+                                                        <div className='flex items-center justify-between gap-2'>
+                                                            <p className='text-[11px] text-slate-100'>{clip.name}</p>
+                                                            <div className='flex items-center gap-2'>
+                                                                <Button
+                                                                    size='sm'
+                                                                    variant={clip.enabled ? 'outline' : 'ghost'}
+                                                                    className='h-6 px-2'
+                                                                    onClick={() => updateSelectedLayerClip(clip.id, { enabled: !clip.enabled })}
+                                                                >
+                                                                    {clip.enabled ? 'Enabled' : 'Muted'}
+                                                                </Button>
+                                                                <Button
+                                                                    size='sm'
+                                                                    variant='ghost'
+                                                                    className='h-6 px-2 text-red-300'
+                                                                    onClick={() => removeSelectedLayerClip(clip.id)}
+                                                                >
+                                                                    Remove
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                        <div className='grid grid-cols-2 gap-2'>
+                                                            <div className='space-y-1'>
+                                                                <Label className='text-[10px] text-slate-400'>Start</Label>
+                                                                <Input
+                                                                    type='number'
+                                                                    step={timelineSnapStep}
+                                                                    min={0}
+                                                                    max={scene.duration}
+                                                                    value={clip.start}
+                                                                    onChange={(event) =>
+                                                                        updateSelectedLayerClip(clip.id, { start: Number(event.target.value) })
+                                                                    }
+                                                                />
+                                                            </div>
+                                                            <div className='space-y-1'>
+                                                                <Label className='text-[10px] text-slate-400'>End</Label>
+                                                                <Input
+                                                                    type='number'
+                                                                    step={timelineSnapStep}
+                                                                    min={0}
+                                                                    max={scene.duration}
+                                                                    value={clip.end}
+                                                                    onChange={(event) =>
+                                                                        updateSelectedLayerClip(clip.id, { end: Number(event.target.value) })
+                                                                    }
+                                                                />
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>
@@ -1639,7 +2613,11 @@ export default function Engines() {
                                                         className={`rounded-md border px-3 py-2 ${selectedNodeId === node.id ? 'border-cyan-300/50 bg-cyan-500/15' : 'border-cyan-500/20 bg-[#0a152d]'}`}
                                                     >
                                                         <div className='flex items-center justify-between gap-2'>
-                                                            <button type='button' className='text-left' onClick={() => setSelectedNodeId(node.id)}>
+                                                            <button
+                                                                type='button'
+                                                                className='text-left'
+                                                                onClick={() => toggleOutlinerSelection(`node:${node.id}`, { additive: false })}
+                                                            >
                                                                 <p className='text-sm text-white'>{node.label}</p>
                                                                 <p className='text-xs text-slate-400'>{node.type}</p>
                                                             </button>
@@ -1825,42 +2803,35 @@ export default function Engines() {
                                             <p>MIDI mapping ({selectedMidiProfile.label}): {selectedMidiProfile.description}</p>
                                             <p>OSC mapping: /vfx/playhead, /vfx/layer/value, /vfx/layer/toggle.</p>
                                         </div>
-                                        {controlProtocol === 'midi' && midiProfileId === 'open-turntable' && (
-                                            <div className='rounded-md border border-fuchsia-400/25 bg-[#081125] p-3 text-xs text-slate-300 space-y-2'>
-                                                <p className='text-fuchsia-200 font-medium'>Open Turntable Deck State</p>
-                                                <div className='grid gap-2 md:grid-cols-2'>
-                                                    <p>Play state: {turntableState.playing ? 'Playing' : 'Paused'}</p>
-                                                    <p>Cue presses: {turntableState.cueCount}</p>
-                                                    <p>Last jog delta: {turntableState.jogDelta}</p>
-                                                    <p>Last signal: {turntableState.lastSignalAt || 'No input yet'}</p>
-                                                </div>
-                                                <div className='space-y-2'>
-                                                    <div>
-                                                        <p className='mb-1'>Tempo fader</p>
-                                                        <div className='h-2 rounded bg-slate-800/80 overflow-hidden'>
-                                                            <div
-                                                                className='h-full bg-cyan-300'
-                                                                style={{ width: `${Math.round((turntableState.tempoNormalized || 0) * 100)}%` }}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <p className='mb-1'>Volume fader</p>
-                                                        <div className='h-2 rounded bg-slate-800/80 overflow-hidden'>
-                                                            <div
-                                                                className='h-full bg-emerald-300'
-                                                                style={{ width: `${Math.round((turntableState.volumeNormalized || 0) * 100)}%` }}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                        {controlProtocol === 'midi' && midiProfileId === 'bubba-dj' && (
+                                            <div className='space-y-2'>
+                                                <BubbaDeckPanel
+                                                    deckState={deckState}
+                                                    onControlChange={(field, value) => {
+                                                        const normalized = clamp(Number(value), 0, 1)
+                                                        if (field === 'tempoNormalized') {
+                                                            const fps = Math.round(24 + normalized * 96)
+                                                            setScene((prev) => ({ ...prev, fps }))
+                                                            setDeckState((prev) => ({ ...prev, tempoNormalized: normalized }))
+                                                            return
+                                                        }
+                                                        if (field === 'crossfaderNormalized') {
+                                                            setSelectedLayerValue(normalized)
+                                                            setDeckState((prev) => ({ ...prev, crossfaderNormalized: normalized }))
+                                                            return
+                                                        }
+                                                        if (field === 'lowEqNormalized' || field === 'highEqNormalized') {
+                                                            setDeckState((prev) => ({ ...prev, [field]: normalized }))
+                                                        }
+                                                    }}
+                                                />
                                                 <p className='text-[11px] text-slate-400'>
-                                                    Mapping source: open-turntable firmware MIDI events (cue/play notes + jog/tempo/volume CC values).
+                                                    Mapping source: BuBBa deck profile (cue/play notes + jog/tempo/crossfader/EQ CC values).
                                                 </p>
                                                 <Button variant='ghost' size='sm' asChild>
-                                                    <a href='https://github.com/michaelpavkovic/open-turntable' target='_blank' rel='noopener noreferrer'>
+                                                    <a href='https://github.com/CiprianVladGherga/BuBBa-DJ' target='_blank' rel='noopener noreferrer'>
                                                         <ArrowSquareOut size={14} className='mr-1.5' />
-                                                        Open Turntable source
+                                                        BuBBa DJ source
                                                     </a>
                                                 </Button>
                                             </div>
@@ -1904,6 +2875,25 @@ export default function Engines() {
                         </div>
                     </TabsContent>
                 </Tabs>
+
+                <Dialog open={showShortcutOverlay} onOpenChange={setShowShortcutOverlay}>
+                    <DialogContent className='sm:max-w-lg'>
+                        <DialogHeader>
+                            <DialogTitle>Keyboard Shortcuts</DialogTitle>
+                            <DialogDescription>
+                                Fast actions for timeline authoring, multi-select edits, and outliner operations.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className='space-y-2'>
+                            {SHORTCUT_ITEMS.map((item) => (
+                                <div key={item.keys} className='rounded-md border border-slate-700/60 bg-slate-900/50 px-3 py-2'>
+                                    <p className='text-xs text-cyan-300 font-mono'>{item.keys}</p>
+                                    <p className='text-sm text-slate-200'>{item.action}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </div>
         </>
     )

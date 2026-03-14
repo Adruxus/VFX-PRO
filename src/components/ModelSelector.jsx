@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
-import { getVideoModels, getImageModels, getActiveProviders } from '@/services/aiProvider'
+import { getVideoModels, getImageModels, getThreeDModels, getActiveProviders } from '@/services/aiProvider'
+import { getModelCreditCost } from '@/services/creditSystem'
 
 const TIER_COLORS = {
     budget: 'bg-green-600/20 text-green-400 border-green-500/30',
@@ -19,7 +20,11 @@ const TIER_LABELS = {
 }
 
 export default function ModelSelector({ type = 'video', value, onChange, className = '' }) {
-    const models = useMemo(() => type === 'video' ? getVideoModels() : getImageModels(), [type])
+    const models = useMemo(() => {
+        if (type === 'video') return getVideoModels()
+        if (type === '3d') return getThreeDModels()
+        return getImageModels()
+    }, [type])
     const active = useMemo(() => getActiveProviders(), [])
     const available = models.filter(m => active.includes(m.provider))
     const grouped = useMemo(() => {
@@ -29,11 +34,16 @@ export default function ModelSelector({ type = 'video', value, onChange, classNa
     }, [available])
 
     const selected = models.find(m => m.id === value)
+    const getCreditLabel = (modelId) => {
+        const creditCost = getModelCreditCost(modelId)
+        if (creditCost > 0) return `${creditCost} credits`
+        return 'Credits vary'
+    }
 
     return (
         <div className={className}>
             <Label className='text-white mb-2 block'>
-                {type === 'video' ? 'Video Model' : 'Image Model'}
+                {type === 'video' ? 'Video Model' : type === '3d' ? '3D Asset Model' : 'Image Model'}
             </Label>
             <Select value={value} onValueChange={onChange}>
                 <SelectTrigger className='bg-slate-800 border-purple-500/20 text-white'>
@@ -47,11 +57,12 @@ export default function ModelSelector({ type = 'video', value, onChange, classNa
                                     {TIER_LABELS[tier]}
                                 </div>
                                 {tierModels.map(m => (
-                                    <SelectItem key={m.id} value={m.id}>
+                                    <SelectItem key={m.id} value={m.id} disabled={m.supportedInApp === false}>
                                         <div className='flex items-center justify-between w-full gap-3'>
                                             <div className='flex-1'>
                                                 <span className='font-medium'>{m.name}</span>
-                                                <span className='text-xs text-gray-400 ml-2'>{m.price}</span>
+                                                <span className='text-xs text-gray-400 ml-2'>{getCreditLabel(m.id)}</span>
+                                                {m.supportedInApp === false && <span className='text-[10px] text-amber-300 ml-2'>External Space</span>}
                                             </div>
                                             <Badge variant='outline' className={TIER_COLORS[m.tier] + ' text-xs'}>
                                                 {m.provider === 'replicate' ? 'R' : 'HF'}
@@ -73,7 +84,7 @@ export default function ModelSelector({ type = 'video', value, onChange, classNa
                         <Badge variant='outline' className={TIER_COLORS[selected.tier] + ' text-xs'}>{selected.tier}</Badge>
                     </div>
                     <div className='grid grid-cols-2 gap-1 text-xs text-gray-400'>
-                        <span>Price: {selected.price}</span>
+                        <span>Credit Cost: {getCreditLabel(selected.id)}</span>
                         <span>Quality: {selected.quality}/10</span>
                         {selected.resolution && <span>Res: {selected.resolution}</span>}
                         {selected.speed && <span>Speed: {selected.speed}</span>}
@@ -81,12 +92,15 @@ export default function ModelSelector({ type = 'video', value, onChange, classNa
                         {selected.fps && <span>FPS: {selected.fps}</span>}
                     </div>
                     <p className='text-xs text-purple-400 mt-1'>{selected.bestFor}</p>
+                    {selected.supportedInApp === false && selected.supportNote && (
+                        <p className='text-[11px] text-amber-300 mt-1'>{selected.supportNote}</p>
+                    )}
                 </div>
             )}
 
             {available.length === 0 && (
                 <p className='text-xs text-red-400 mt-2'>
-                    No API keys configured. Add VITE_REPLICATE_API_KEY or VITE_HUGGINGFACE_API_KEY to your .env file.
+                    No providers are currently available. Configure server-side provider tokens in Netlify environment variables.
                 </p>
             )}
         </div>

@@ -1,5 +1,6 @@
 {
   "creditValue": 0.01,
+  "chargeMultiplier": 3.0,
   "markup": 3.0,
   "tiers": {
     "free": {
@@ -138,6 +139,18 @@
         "yourPrice": 0.02,
         "margin": "567%"
       },
+      "live-portrait": {
+        "providerCost": 0.08,
+        "credits": 24,
+        "yourPrice": 0.24,
+        "margin": "200%"
+      },
+      "wan-2.1-space": {
+        "providerCost": 0.1,
+        "credits": 30,
+        "yourPrice": 0.3,
+        "margin": "200%"
+      },
       "wan-2.1-t2v": {
         "providerCost": 0.08,
         "credits": 25,
@@ -164,6 +177,42 @@
         "yourPrice": 0.08,
         "margin": "220%"
       },
+      "trellis-2": {
+        "providerCost": 0.35,
+        "credits": 105,
+        "yourPrice": 1.05,
+        "margin": "200%"
+      },
+      "3d-arena": {
+        "providerCost": 0.3,
+        "credits": 90,
+        "yourPrice": 0.9,
+        "margin": "200%"
+      },
+      "wan-2.2-animate": {
+        "providerCost": 0.24,
+        "credits": 72,
+        "yourPrice": 0.72,
+        "margin": "200%"
+      },
+      "stable-video-diffusion-1.1": {
+        "providerCost": 0.18,
+        "credits": 54,
+        "yourPrice": 0.54,
+        "margin": "200%"
+      },
+      "ltx-video-fast": {
+        "providerCost": 0.14,
+        "credits": 42,
+        "yourPrice": 0.42,
+        "margin": "200%"
+      },
+      "ai-video-composer": {
+        "providerCost": 0.16,
+        "credits": 48,
+        "yourPrice": 0.48,
+        "margin": "200%"
+      },
       "hailuo-02": {
         "providerCost": 0.3,
         "credits": 100,
@@ -188,6 +237,30 @@
         "providerCost": 0.04,
         "credits": 12,
         "yourPrice": 0.12,
+        "margin": "200%"
+      },
+      "hunyuan3d-2.1": {
+        "providerCost": 0.45,
+        "credits": 135,
+        "yourPrice": 1.35,
+        "margin": "200%"
+      },
+      "sparc3d": {
+        "providerCost": 0.4,
+        "credits": 120,
+        "yourPrice": 1.2,
+        "margin": "200%"
+      },
+      "wan-2.2-14b-fast": {
+        "providerCost": 0.42,
+        "credits": 126,
+        "yourPrice": 1.26,
+        "margin": "200%"
+      },
+      "nsfw-uncensored-video": {
+        "providerCost": 0.2,
+        "credits": 60,
+        "yourPrice": 0.6,
         "margin": "200%"
       },
       "kling-2.1": {

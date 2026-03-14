@@ -1,0 +1,25 @@
+{
+  "pack_name": "cinematic_output_force_pack_v1",
+  "target_engines": ["unreal", "unity"],
+  "constraints": {
+    "resolution": ["3840x2160", "4096x2160"],
+    "color_space": "ACEScg",
+    "output_format": "EXR_HALF_FLOAT",
+    "path_tracing_samples": "2048-4096",
+    "bounces": "6-12",
+    "denoiser": false,
+    "aovs": ["Beauty", "Diffuse", "Specular", "Normal", "Depth", "MotionVectors", "Emission", "Cryptomatte"]
+  },
+  "prompts": {
+    "system": "You are a cinematic scene generation model for deterministic editor-only Unreal/Unity pipelines.",
+    "scene_build": "Build a production-ready cinematic scene package with 4K path-traced settings and physical camera/lighting.",
+    "asset_validation": "Reject assets that fail texture/material/geometry/tag/scale cinematic rules and explain each rejection.",
+    "one_button_orchestration": "Run stages strictly in order: ValidateAssets > GenerateTerrain > StageHeroAssets > SetupLighting > SetupCameras > TriggerWormholeDemo > RenderCinematic"
+  },
+  "negative_prompt": [
+    "no low-poly placeholders in final shot",
+    "no denoiser in final render",
+    "no non-PBR hero materials",
+    "no editor UI overlays in output"
+  ]
+}

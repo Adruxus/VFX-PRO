@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
+import { Link } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -12,13 +13,29 @@ import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import ModelSelector from '@/components/ModelSelector'
-import { SpinnerGap, Sparkle, MagicWand, VideoCamera, Cube, ClockCounterClockwise, MusicNotes, DownloadSimple } from '@/components/icons/futureIcons'
+import { SpinnerGap, Sparkle, MagicWand, VideoCamera, Cube, ClockCounterClockwise, MusicNotes, DownloadSimple, CheckCircle, WarningCircle } from '@/components/icons/futureIcons'
 import { toast } from 'sonner'
-import { generateVideo, generateImage, generate3DAsset, getCredits, getProviderJobStatus } from '@/services/backend'
+import {
+    generateVideo,
+    generateImage,
+    generate3DAsset,
+    getCredits,
+    getProviderJobStatus,
+    validateGenerationPreflight,
+} from '@/services/backend'
 import { useUser } from '@clerk/clerk-react'
 import { PLAN_LABELS, useAccessControl } from '@/services/accessControl'
-import { getActiveProviders, getVideoModels, getImageModels, getThreeDModels } from '@/services/aiProvider'
+import { getActiveProviders, getVideoModels, getImageModels, getThreeDModels, getProviderHealthSnapshot } from '@/services/aiProvider'
 import { getModelPricing } from '@/services/creditSystem'
+import { recordQueueAnalyticsEvent } from '@/services/queueAnalytics'
+import {
+    addProjectAsset,
+    createWorkspaceProject,
+    getActiveWorkspaceProject,
+    listWorkspaceProjects,
+    saveWorkspaceSnapshot,
+    setActiveWorkspaceProject,
+} from '@/services/workspace'
 
 const GENERATOR_TYPES = [
     {
@@ -57,11 +74,43 @@ const RESOLUTION_OPTIONS = [
 const DIVERSITY_OPTIONS = ['tight', 'balanced', 'wide']
 const LOOP_TYPES = ['seamless', 'pingpong', 'hard-cut']
 const FRAME_RATES = ['24', '30', '60', '120']
-const DEFAULT_VIDEO_MODEL = 'wan-2.1-t2v'
+const DEFAULT_VIDEO_MODEL = 'wan-2.1-space'
 const DEFAULT_IMAGE_MODEL = 'sdxl'
 const DEFAULT_3D_MODEL = 'trellis-2'
 const MAX_PROMPT_CHARS = 1200
 const TERMINAL_PROVIDER_STATUSES = new Set(['succeeded', 'failed', 'canceled', 'aborted', 'completed'])
+const GENERATOR_PLAYBOOK = {
+    image: {
+        title: '2D Image Generation Quick Start',
+        steps: [
+            'Pick a model based on quality and credit budget.',
+            'Write a prompt describing subject, style, lighting, and composition.',
+            'Set resolution and diversity, then choose your color palette.',
+            'Generate a preview, review output quality, then export PNG/JPG/WEBP.',
+        ],
+        examplePrompt: 'futuristic stage backdrop, volumetric cyan lasers, chrome geometry, ultra-detailed, high contrast',
+    },
+    video: {
+        title: '3D Text-to-Video Loop Quick Start',
+        steps: [
+            'Select a video model and verify whether reference image/video inputs are required.',
+            'Write motion-focused prompt text with camera movement and energy level.',
+            'Set duration, FPS, resolution, and loop behavior for playback context.',
+            'Generate preview, confirm seamlessness, then export MP4/MOV/GIF.',
+        ],
+        examplePrompt: 'neon tunnel fly-through, pulsing bass-reactive geometry, chromatic aberration, smooth loop, cinematic lighting',
+    },
+    '3d': {
+        title: '3D Asset Generation Quick Start',
+        steps: [
+            'Upload a clear source image with strong silhouette and minimal blur.',
+            'Select TRELLIS.2 or Hunyuan3D-2.1 for in-app generation.',
+            'Set triangle and texture budgets for your target engine performance.',
+            'Generate asset, validate quality in engine viewport, then export GLB/OBJ/FBX.',
+        ],
+        examplePrompt: 'hard-surface sci-fi drone, matte black body, emissive cyan accents, production topology',
+    },
+}
 
 function parsePalette(input) {
     return input
@@ -90,29 +139,85 @@ function getUrlExtension(url) {
     return match ? match[1].toLowerCase() : ''
 }
 
-function describeProgressStatus(status) {
-    const value = String(status || '').toLowerCase()
-    if (!value) return 'Preparing generation request...'
-    if (value === 'cached') return 'Loaded from cache.'
-    if (value === 'submitting') return 'Submitting request to provider...'
-    if (value === 'starting' || value === 'queued') return 'Queued at provider...'
-    if (value === 'processing' || value === 'running') return 'Provider is generating preview...'
-    if (value === 'succeeded' || value === 'completed') return 'Generation completed.'
-    if (value === 'canceled' || value === 'aborted') return 'Generation canceled.'
-    if (value === 'failed') return 'Generation failed.'
-    return `Status: ${status}`
+function isSameOriginUrl(url) {
+    if (!url || typeof window === 'undefined') return false
+    try {
+        const parsed = new URL(url, window.location.origin)
+        return parsed.origin === window.location.origin
+    } catch {
+        return false
+    }
 }
 
-function progressValueForStatus(status) {
+function shouldUseProviderProxy() {
+    if (typeof window === 'undefined') return false
+    const host = String(window.location.hostname || '').toLowerCase()
+    return host !== 'localhost' && host !== '127.0.0.1'
+}
+
+function toProviderProxyUrl(url) {
+    const normalized = String(url || '').trim()
+    if (!normalized) return ''
+    if (!/^https?:\/\//i.test(normalized)) return normalized
+    if (isSameOriginUrl(normalized)) return normalized
+    if (!shouldUseProviderProxy()) return normalized
+    return `/api/v1/provider-file?url=${encodeURIComponent(normalized)}`
+}
+
+const PHASE_LABELS = {
+    queue: 'Queue',
+    run: 'Run',
+    postprocess: 'Postprocess',
+    ready: 'Ready',
+    failed: 'Failed',
+}
+
+function getProgressPhase(status, message = '') {
     const value = String(status || '').toLowerCase()
-    if (!value) return 5
-    if (value === 'cached') return 100
+    const text = String(message || '').toLowerCase()
+    if (value === 'failed' || value === 'aborted' || value === 'canceled') return 'failed'
+    if (value === 'cached' || value === 'succeeded' || value === 'completed') return 'ready'
+    if (/finaliz|post|encode|extract|downloading output|saving/.test(text)) return 'postprocess'
+    if (value === 'processing' || value === 'running') return 'run'
+    return 'queue'
+}
+
+function describeProgressStatus(status, message = '') {
+    const phase = getProgressPhase(status, message)
+    if (phase === 'failed') return 'Generation failed.'
+    if (phase === 'ready') return 'Generation completed.'
+    if (phase === 'postprocess') return 'Provider postprocessing output...'
+    if (phase === 'run') return 'Provider is generating preview...'
+    return 'Queued at provider...'
+}
+
+function progressValueForPhase(phase, status) {
+    const value = String(status || '').toLowerCase()
+    if (phase === 'failed') return 0
+    if (phase === 'ready') return 100
+    if (phase === 'postprocess') return 90
+    if (phase === 'run') return value === 'running' ? 70 : 60
     if (value === 'submitting') return 15
     if (value === 'starting' || value === 'queued') return 30
-    if (value === 'processing' || value === 'running') return 70
-    if (value === 'succeeded' || value === 'completed') return 100
-    if (value === 'failed' || value === 'aborted' || value === 'canceled') return 0
-    return 55
+    return 25
+}
+
+function sanitizeStatusPercentText(message) {
+    const source = String(message || '')
+    if (!source) return ''
+    return source.replace(/(-?\d+(?:\.\d+)?)\s*%/g, (match, rawValue) => {
+        const numeric = Number(rawValue)
+        if (!Number.isFinite(numeric)) return match
+        const clamped = Math.max(0, Math.min(100, Math.round(numeric)))
+        return `${clamped}%`
+    })
+}
+
+function getQueueLaneForPlan(plan) {
+    if (plan === 'studio') return { lane: 'Studio Priority', sla: 'Target < 1 min queue', badge: 'border-emerald-400/45 text-emerald-200 bg-emerald-500/10' }
+    if (plan === 'pro') return { lane: 'Pro Priority', sla: 'Target < 3 min queue', badge: 'border-cyan-400/45 text-cyan-200 bg-cyan-500/10' }
+    if (plan === 'creator') return { lane: 'Standard', sla: 'Target < 8 min queue', badge: 'border-amber-400/45 text-amber-200 bg-amber-500/10' }
+    return { lane: 'Community', sla: 'Best effort queue', badge: 'border-slate-400/45 text-slate-200 bg-slate-500/10' }
 }
 
 export default function AssetGenerator() {
@@ -139,8 +244,10 @@ export default function AssetGenerator() {
     const [credits, setCredits] = useState(100)
     const [generating, setGenerating] = useState(false)
     const [generationStatus, setGenerationStatus] = useState('')
+    const [generationPhase, setGenerationPhase] = useState('queue')
     const [generationProgress, setGenerationProgress] = useState(0)
     const [resultUrl, setResultUrl] = useState(null)
+    const [resultSourceUrl, setResultSourceUrl] = useState(null)
     const [apiJob, setApiJob] = useState(null)
     const [providerJobId, setProviderJobId] = useState(null)
     const [providerJobSnapshot, setProviderJobSnapshot] = useState(null)
@@ -156,6 +263,10 @@ export default function AssetGenerator() {
     const [sourceImagePreviewUrl, setSourceImagePreviewUrl] = useState(null)
     const [exportFormat, setExportFormat] = useState(GENERATOR_TYPES[0].exports[0])
     const [downloading, setDownloading] = useState(false)
+    const [providerHealth, setProviderHealth] = useState(null)
+    const [providerHealthLoading, setProviderHealthLoading] = useState(false)
+    const [workspaceProjects, setWorkspaceProjects] = useState([])
+    const [activeProjectId, setActiveProjectId] = useState('')
 
     const selectedGenerator = useMemo(() => GENERATOR_TYPES.find((item) => item.id === generatorId) || GENERATOR_TYPES[0], [generatorId])
     const activeProviders = useMemo(() => getActiveProviders(), [])
@@ -196,16 +307,17 @@ export default function AssetGenerator() {
     const videoRequiresVideoInput = Boolean(selectedVideoModel?.requiresVideoInput)
     const videoSupportsImageInput = Boolean(selectedVideoModel?.supportsImageInput)
     const videoSupportsVideoInput = Boolean(selectedVideoModel?.supportsVideoInput)
+    const activePlaybook = GENERATOR_PLAYBOOK[selectedGenerator.mode] || GENERATOR_PLAYBOOK.image
 
     const providerErrorMessage = useMemo(() => {
         if (selectedGenerator.mode === 'video' && availableVideoModels.length === 0) {
-            return 'No configured providers can generate video. Add VITE_REPLICATE_API_KEY or VITE_HUGGINGFACE_API_KEY.'
+            return 'No configured providers can generate video. Add REPLICATE_API_KEY and HUGGINGFACE_API_KEY in Netlify environment variables.'
         }
         if (selectedGenerator.mode === 'image' && availableImageModels.length === 0) {
-            return 'No configured providers can generate images. Add VITE_REPLICATE_API_KEY or VITE_HUGGINGFACE_API_KEY.'
+            return 'No configured providers can generate images. Add REPLICATE_API_KEY and HUGGINGFACE_API_KEY in Netlify environment variables.'
         }
         if (selectedGenerator.mode === '3d' && availableThreeDModels.length === 0) {
-            return 'No configured providers can generate 3D assets. Add VITE_HUGGINGFACE_API_KEY.'
+            return 'No configured providers can generate 3D assets. Add HUGGINGFACE_API_KEY in Netlify environment variables.'
         }
         if (selectedGenerator.mode === '3d' && inAppThreeDModels.length === 0) {
             return 'Configured 3D Spaces are external-only right now. Pick TRELLIS.2 or Hunyuan3D-2.1.'
@@ -227,6 +339,44 @@ export default function AssetGenerator() {
         selectedProvider,
         selectedThreeDModel,
     ])
+    const preflightReport = useMemo(() => validateGenerationPreflight({
+        type: selectedGenerator.mode,
+        modelId: selectedModelId,
+        prompt,
+        duration: duration[0],
+        resolution,
+        width: 1024,
+        height: 1024,
+        imageFile: selectedGenerator.mode === '3d' ? sourceImageFile : videoImageFile,
+        videoFile: selectedGenerator.mode === 'video' ? videoMotionFile : null,
+        maxTriangles,
+        maxTexture,
+    }), [
+        duration,
+        maxTexture,
+        maxTriangles,
+        prompt,
+        resolution,
+        selectedGenerator.mode,
+        selectedModelId,
+        sourceImageFile,
+        videoImageFile,
+        videoMotionFile,
+    ])
+    const generationChecklist = useMemo(() => {
+        const checks = [
+            { label: 'Model selected', ok: Boolean(selectedModelId) },
+            { label: 'Provider available', ok: !providerErrorMessage },
+            ...(Array.isArray(preflightReport?.checks) ? preflightReport.checks : []),
+        ]
+        return checks
+    }, [preflightReport?.checks, providerErrorMessage, selectedModelId])
+    const remainingChecklistCount = generationChecklist.filter((item) => !item.ok).length
+    const queueLane = useMemo(() => getQueueLaneForPlan(effectivePlan), [effectivePlan])
+    const activeWorkspaceProject = useMemo(
+        () => workspaceProjects.find((project) => project.id === activeProjectId) || null,
+        [activeProjectId, workspaceProjects]
+    )
 
     const clearResultPreview = useCallback(() => {
         const cleanup = resultCleanupRef.current
@@ -239,6 +389,7 @@ export default function AssetGenerator() {
         }
         resultCleanupRef.current = null
         setResultUrl(null)
+        setResultSourceUrl(null)
     }, [])
 
     useEffect(() => {
@@ -260,6 +411,46 @@ export default function AssetGenerator() {
             active = false
         }
     }, [effectivePlan, user])
+
+    useEffect(() => {
+        let active = true
+        setProviderHealthLoading(true)
+        getProviderHealthSnapshot({ forceRefresh: true })
+            .then((snapshot) => {
+                if (!active) return
+                setProviderHealth(snapshot || null)
+            })
+            .catch(() => {
+                if (!active) return
+                setProviderHealth(null)
+            })
+            .finally(() => {
+                if (!active) return
+                setProviderHealthLoading(false)
+            })
+        return () => {
+            active = false
+        }
+    }, [selectedModelId])
+
+    useEffect(() => {
+        if (!user?.id) {
+            setWorkspaceProjects([])
+            setActiveProjectId('')
+            return
+        }
+        const projects = listWorkspaceProjects(user.id)
+        const active = getActiveWorkspaceProject(user.id)
+        setWorkspaceProjects(projects)
+        setActiveProjectId(active?.id || projects[0]?.id || '')
+    }, [user?.id])
+
+    useEffect(() => {
+        if (!activeWorkspaceProject) return
+        if (!projectName.trim()) {
+            setProjectName(activeWorkspaceProject.name || 'Untitled Project')
+        }
+    }, [activeWorkspaceProject, projectName])
 
     useEffect(() => {
         if (!selectedGenerator.exports.includes(exportFormat)) {
@@ -427,9 +618,123 @@ export default function AssetGenerator() {
         setSourceImageFile(file)
     }
 
+    const applyExamplePrompt = () => {
+        const example = String(activePlaybook.examplePrompt || '').trim()
+        if (!example) return
+        setPrompt(example)
+        toast.success('Example prompt applied. Customize it for your project.')
+    }
+
+    const applyWorkspaceProjectToForm = useCallback((project) => {
+        if (!project) return
+        setProjectName(project.name || 'Untitled Project')
+        if (project.prompt) setPrompt(project.prompt)
+        if (project.style) setStyle(project.style)
+        if (project.resolution) setResolution(project.resolution)
+        if (project.duration) setDuration([Math.max(1, Number(project.duration) || 8)])
+        if (project.generator_mode === 'video') setGeneratorId('loop3d')
+        if (project.generator_mode === '3d') setGeneratorId('asset3d')
+        if (project.generator_mode === 'image') setGeneratorId('loop2d')
+    }, [])
+
+    const refreshWorkspaceProjects = useCallback(() => {
+        if (!user?.id) return
+        const projects = listWorkspaceProjects(user.id)
+        const active = getActiveWorkspaceProject(user.id)
+        setWorkspaceProjects(projects)
+        setActiveProjectId(active?.id || projects[0]?.id || '')
+    }, [user?.id])
+
+    const handleWorkspaceProjectSelect = (projectId) => {
+        if (!user?.id) return
+        setActiveWorkspaceProject(user.id, projectId)
+        const projects = listWorkspaceProjects(user.id)
+        setWorkspaceProjects(projects)
+        setActiveProjectId(projectId)
+        const selected = projects.find((project) => project.id === projectId) || null
+        applyWorkspaceProjectToForm(selected)
+    }
+
+    const handleCreateWorkspaceProject = () => {
+        if (!user?.id) {
+            toast.error('Sign in to create projects.')
+            return
+        }
+        createWorkspaceProject(user.id, {
+            name: projectName || `Project ${workspaceProjects.length + 1}`,
+            description: `Created from ${selectedGenerator.name}`,
+            generator_mode: selectedGenerator.mode,
+            prompt,
+            style,
+            resolution,
+            duration: duration[0],
+            model_id: selectedModelId,
+            settings: {
+                frameRate,
+                loopType,
+                tempoBpm,
+                audioReactive,
+                variantCount,
+                diversity,
+                maxTriangles,
+                maxTexture,
+                gpuBudget,
+            },
+        })
+        refreshWorkspaceProjects()
+        toast.success('Project workspace created.')
+    }
+
+    const handleSaveWorkspaceProject = () => {
+        if (!user?.id || !activeProjectId) {
+            toast.error('Choose a project first.')
+            return
+        }
+        saveWorkspaceSnapshot(user.id, activeProjectId, {
+            name: projectName || 'Untitled Project',
+            generator_mode: selectedGenerator.mode,
+            prompt,
+            style,
+            resolution,
+            duration: duration[0],
+            model_id: selectedModelId,
+            settings: {
+                frameRate,
+                loopType,
+                tempoBpm,
+                audioReactive,
+                palette,
+                variantCount,
+                diversity,
+                maxTriangles,
+                maxTexture,
+                gpuBudget,
+            },
+        })
+        refreshWorkspaceProjects()
+        toast.success('Project settings saved.')
+    }
+
     const handleGeneratePreview = async () => {
+        const requestStartedAt = Date.now()
+        let firstRunStatusAt = null
+        let peakQueuePosition = 0
+        const trackQueueAnalytics = (status) => {
+            if (!user?.id) return
+            recordQueueAnalyticsEvent(user.id, {
+                lane: queueLane.lane,
+                model_id: selectedModelId,
+                provider: selectedProvider,
+                status,
+                queue_position: peakQueuePosition,
+                queue_wait_ms: firstRunStatusAt ? Math.max(0, firstRunStatusAt - requestStartedAt) : 0,
+                total_elapsed_ms: Math.max(0, Date.now() - requestStartedAt),
+            })
+        }
+
         setGenerationStatus('')
         setGenerationProgress(0)
+        setGenerationPhase('queue')
         setProviderJobId(null)
         setProviderJobSnapshot(null)
         setProviderJobPollState('idle')
@@ -441,25 +746,16 @@ export default function AssetGenerator() {
             toast.error(providerErrorMessage)
             return
         }
-        if (selectedGenerator.mode !== '3d' && !prompt.trim()) {
-            toast.error('Enter a generator prompt.')
+        if (!preflightReport.ok) {
+            toast.error(preflightReport.errors[0] || 'Fix preflight errors before generating.')
             return
         }
-        if (selectedGenerator.mode === 'video' && videoRequiresImageInput && !videoImageFile) {
-            toast.error('Selected video model requires a reference image.')
-            return
-        }
-        if (selectedGenerator.mode === 'video' && videoRequiresVideoInput && !videoMotionFile) {
-            toast.error('Selected video model requires a driving video upload.')
-            return
-        }
-        if (selectedGenerator.mode === '3d' && !sourceImageFile) {
-            toast.error('Upload a source image for 3D asset generation.')
-            return
+        if (Array.isArray(preflightReport.warnings) && preflightReport.warnings.length > 0) {
+            toast.info(preflightReport.warnings[0])
         }
 
         setGenerating(true)
-        setGenerationStatus('Preparing generation request...')
+        setGenerationStatus(`${PHASE_LABELS.queue}: Preparing generation request...`)
         setGenerationProgress(5)
         try {
             const payload = {
@@ -473,10 +769,24 @@ export default function AssetGenerator() {
                 duration: duration[0],
                 resolution,
                 onProgress: (event) => {
-                    const baseStatus = describeProgressStatus(event?.status)
-                    const message = String(event?.message || '').trim()
-                    setGenerationStatus(message ? `${baseStatus} ${message}` : baseStatus)
-                    setGenerationProgress(progressValueForStatus(event?.status))
+                    const message = sanitizeStatusPercentText(event?.message).trim()
+                    const phase = getProgressPhase(event?.status, message)
+                    if (phase === 'run' && !firstRunStatusAt) {
+                        firstRunStatusAt = Date.now()
+                    }
+                    const queueMatch = message.match(/queue position\s+(\d+)/i)
+                    if (queueMatch?.[1]) {
+                        const queuePosition = Number(queueMatch[1])
+                        if (Number.isFinite(queuePosition)) {
+                            peakQueuePosition = Math.max(peakQueuePosition, Math.max(0, Math.floor(queuePosition)))
+                        }
+                    }
+                    setGenerationPhase(phase)
+                    const baseStatus = describeProgressStatus(event?.status, message)
+                    const phaseLabel = PHASE_LABELS[phase] || 'Queue'
+                    const text = message || baseStatus
+                    setGenerationStatus(`${phaseLabel}: ${text}`)
+                    setGenerationProgress(progressValueForPhase(phase, event?.status))
                     if (event?.provider_job_id) {
                         setProviderJobId((prev) => prev || String(event.provider_job_id))
                     }
@@ -502,10 +812,15 @@ export default function AssetGenerator() {
 
             if (result.error) {
                 toast.error(result.error)
-                setGenerationStatus('Generation failed.')
+                setGenerationPhase('failed')
+                setGenerationStatus(`${PHASE_LABELS.failed}: ${result.error}`)
+                setGenerationProgress(0)
+                trackQueueAnalytics('failed')
             } else {
                 clearResultPreview()
-                setResultUrl(result.result_url)
+                const sourceUrl = String(result.result_url || '')
+                setResultSourceUrl(sourceUrl || null)
+                setResultUrl(toProviderProxyUrl(sourceUrl) || null)
                 if (typeof result.release_result === 'function') {
                     resultCleanupRef.current = result.release_result
                 }
@@ -516,18 +831,31 @@ export default function AssetGenerator() {
                 if (result.provider_job_id) {
                     setProviderJobId(String(result.provider_job_id))
                 }
+                if (user?.id && activeProjectId && sourceUrl) {
+                    addProjectAsset(user.id, activeProjectId, {
+                        source_url: sourceUrl,
+                        kind: selectedGenerator.mode === '3d' ? '3d' : selectedGenerator.mode,
+                        model_id: selectedModelId,
+                        provider: selectedProvider,
+                    })
+                    refreshWorkspaceProjects()
+                }
                 if (result.cache_hit) {
                     toast.success('Preview loaded from cache. No credits used.')
                 } else {
                     toast.success(selectedGenerator.mode === '3d' ? '3D asset generated.' : 'Preview generated.')
                 }
-                setGenerationStatus('')
-                setGenerationProgress(0)
+                setGenerationPhase('ready')
+                setGenerationStatus(`${PHASE_LABELS.ready}: Output is ready for export.`)
+                setGenerationProgress(100)
+                trackQueueAnalytics('succeeded')
             }
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Generation failed')
-            setGenerationStatus('Generation failed.')
+            setGenerationPhase('failed')
+            setGenerationStatus(`${PHASE_LABELS.failed}: ${error instanceof Error ? error.message : 'Generation failed.'}`)
             setGenerationProgress(0)
+            trackQueueAnalytics('failed')
         } finally {
             setGenerating(false)
         }
@@ -603,31 +931,26 @@ export default function AssetGenerator() {
         const extension = normalizeExportExtension(exportFormat)
         const safeProjectName = String(projectName || selectedGenerator.id).trim().replace(/\s+/g, '_').toLowerCase()
         const filename = `${safeProjectName}-${selectedGenerator.id}.${extension}`
-        const sourceExtension = getUrlExtension(resultUrl)
+        const sourceExtension = getUrlExtension(resultSourceUrl || resultUrl)
         try {
-            const response = await fetch(resultUrl)
-            if (!response.ok) {
-                throw new Error(`Download failed (${response.status})`)
-            }
-            const blob = await response.blob()
-            const objectUrl = URL.createObjectURL(blob)
+            if (isSameOriginUrl(resultUrl) || /^blob:|^data:/i.test(resultUrl)) {
+                const response = await fetch(resultUrl)
+                if (!response.ok) {
+                    throw new Error(`Download failed (${response.status})`)
+                }
+                const blob = await response.blob()
+                const objectUrl = URL.createObjectURL(blob)
 
-            const anchor = document.createElement('a')
-            anchor.href = objectUrl
-            anchor.download = filename
-            document.body.appendChild(anchor)
-            anchor.click()
-            document.body.removeChild(anchor)
-            window.requestAnimationFrame(() => {
-                window.requestAnimationFrame(() => URL.revokeObjectURL(objectUrl))
-            })
-
-            toast.success(`Export downloaded as ${extension.toUpperCase()}`)
-            if (sourceExtension && sourceExtension !== extension) {
-                toast.info('Downloaded source media with selected extension label. Full transcoding requires export worker support.')
-            }
-        } catch (error) {
-            try {
+                const anchor = document.createElement('a')
+                anchor.href = objectUrl
+                anchor.download = filename
+                document.body.appendChild(anchor)
+                anchor.click()
+                document.body.removeChild(anchor)
+                window.requestAnimationFrame(() => {
+                    window.requestAnimationFrame(() => URL.revokeObjectURL(objectUrl))
+                })
+            } else {
                 const anchor = document.createElement('a')
                 anchor.href = resultUrl
                 anchor.target = '_blank'
@@ -636,7 +959,23 @@ export default function AssetGenerator() {
                 document.body.appendChild(anchor)
                 anchor.click()
                 document.body.removeChild(anchor)
-                toast.info('Opened direct provider download. Browser policy blocked in-app fetch download.')
+            }
+
+            toast.success(`Export downloaded as ${extension.toUpperCase()}`)
+            if (sourceExtension && sourceExtension !== extension) {
+                toast.info('Downloaded source media with selected extension label. Full transcoding requires export worker support.')
+            }
+        } catch (error) {
+            try {
+                const anchor = document.createElement('a')
+                anchor.href = resultSourceUrl || resultUrl
+                anchor.target = '_blank'
+                anchor.rel = 'noopener noreferrer'
+                anchor.download = filename
+                document.body.appendChild(anchor)
+                anchor.click()
+                document.body.removeChild(anchor)
+                toast.info('Opened direct provider download fallback.')
             } catch {
                 toast.error(error instanceof Error ? error.message : 'Export download failed')
             }
@@ -686,15 +1025,27 @@ export default function AssetGenerator() {
                             <Sparkle size={13} className='mr-1.5' />
                             {credits} Credits
                         </Badge>
+                        <Badge variant='outline' className={queueLane.badge}>
+                            Queue: {queueLane.lane}
+                        </Badge>
                     </div>
                 </div>
 
                 <Tabs value={generatorId} onValueChange={setGeneratorId}>
-                    <TabsList className='grid w-full grid-cols-3 bg-slate-900/60'>
+                    <TabsList className='grid h-auto w-full grid-cols-1 gap-2 bg-slate-900/70 p-2 md:grid-cols-3'>
                         {GENERATOR_TYPES.map((generator) => (
-                            <TabsTrigger key={generator.id} value={generator.id} className='flex items-center gap-2'>
-                                <generator.icon size={16} />
-                                {generator.name}
+                            <TabsTrigger
+                                key={generator.id}
+                                value={generator.id}
+                                className='h-16 w-full cursor-pointer justify-start gap-3 rounded-lg border border-cyan-400/30 bg-slate-800/70 px-4 text-left text-sm font-semibold text-cyan-100 hover:border-cyan-300/70 hover:bg-cyan-500/10 data-[state=active]:border-cyan-200 data-[state=active]:bg-cyan-500/25 data-[state=active]:text-white md:h-20 md:text-base'
+                            >
+                                <span className='inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-cyan-300/40 bg-slate-900/80 text-cyan-200 md:h-10 md:w-10'>
+                                    <generator.icon size={20} />
+                                </span>
+                                <span className='leading-tight'>
+                                    <span className='block'>{generator.name}</span>
+                                    <span className='block text-[11px] font-medium text-cyan-200/85 md:text-xs'>Click to switch mode</span>
+                                </span>
                             </TabsTrigger>
                         ))}
                     </TabsList>
@@ -718,6 +1069,93 @@ export default function AssetGenerator() {
                                 </CardContent>
                             </Card>
 
+                            <Card className='bg-slate-900/60 border-cyan-400/20'>
+                                <CardHeader>
+                                    <CardTitle className='text-white'>{activePlaybook.title}</CardTitle>
+                                    <CardDescription className='text-slate-300'>
+                                        Step-by-step workflow and readiness checks for this mode.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className='space-y-4'>
+                                    <ol className='space-y-2'>
+                                        {activePlaybook.steps.map((step, index) => (
+                                            <li key={`${generator.id}-step-${index + 1}`} className='flex items-start gap-2 text-sm text-slate-200'>
+                                                <span className='mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-cyan-500/20 text-[11px] font-semibold text-cyan-100'>
+                                                    {index + 1}
+                                                </span>
+                                                <span>{step}</span>
+                                            </li>
+                                        ))}
+                                    </ol>
+
+                                    <div className='rounded-lg border border-cyan-500/20 bg-slate-800/40 p-3'>
+                                        <p className='text-xs font-medium text-cyan-200'>Generation Checklist</p>
+                                        <div className='mt-2 grid gap-2 md:grid-cols-2'>
+                                            {generationChecklist.map((item) => (
+                                                <div
+                                                    key={`${generator.id}-${item.label}`}
+                                                    className={`flex items-center gap-2 rounded-md border px-2.5 py-2 text-xs ${
+                                                        item.ok
+                                                            ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-100'
+                                                            : 'border-amber-400/30 bg-amber-500/10 text-amber-100'
+                                                    }`}
+                                                >
+                                                    {item.ok ? <CheckCircle size={14} /> : <WarningCircle size={14} />}
+                                                    <span>{item.label}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <p className='mt-2 text-[11px] text-slate-300'>
+                                            {remainingChecklistCount === 0
+                                                ? 'All required inputs are ready. You can generate now.'
+                                                : `${remainingChecklistCount} checklist item(s) still need attention.`}
+                                        </p>
+                                        {Array.isArray(preflightReport?.warnings) && preflightReport.warnings.length > 0 && (
+                                            <div className='mt-2 rounded-md border border-amber-400/30 bg-amber-500/10 p-2 text-[11px] text-amber-100 space-y-1'>
+                                                {preflightReport.warnings.slice(0, 2).map((warning) => (
+                                                    <p key={warning}>{warning}</p>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className='rounded-lg border border-cyan-500/20 bg-slate-800/40 p-3 space-y-2'>
+                                        <p className='text-xs font-medium text-cyan-200'>Provider Health + Fallback</p>
+                                        {providerHealthLoading && <p className='text-[11px] text-slate-300'>Checking provider health...</p>}
+                                        {!providerHealthLoading && providerHealth && (
+                                            <div className='flex flex-wrap gap-2'>
+                                                <Badge variant='outline' className={providerHealth?.replicate?.ok ? 'border-emerald-400/35 text-emerald-200' : 'border-amber-400/35 text-amber-200'}>
+                                                    Replicate: {providerHealth?.replicate?.ok ? 'Healthy' : 'Degraded'}
+                                                </Badge>
+                                                <Badge variant='outline' className={providerHealth?.huggingface?.ok ? 'border-emerald-400/35 text-emerald-200' : 'border-amber-400/35 text-amber-200'}>
+                                                    Hugging Face: {providerHealth?.huggingface?.ok ? 'Healthy' : 'Degraded'}
+                                                </Badge>
+                                            </div>
+                                        )}
+                                        {selectedGenerator.mode === 'video' && selectedVideoModel && (
+                                            <p className='text-[11px] text-slate-300'>
+                                                Fallback chain: {[selectedVideoModel.id, ...(selectedVideoModel.failoverModelIds || [])].join(' -> ')}
+                                            </p>
+                                        )}
+                                        <p className='text-[11px] text-slate-400'>Queue lane: {queueLane.lane} ({queueLane.sla})</p>
+                                    </div>
+
+                                    <div className='flex flex-wrap gap-2'>
+                                        {selectedGenerator.mode !== '3d' && (
+                                            <Button type='button' variant='outline' size='sm' onClick={applyExamplePrompt}>
+                                                Use Example Prompt
+                                            </Button>
+                                        )}
+                                        <Link
+                                            to='/tutorials'
+                                            className='inline-flex h-9 items-center justify-center rounded-md border border-cyan-400/35 px-3 text-sm text-cyan-100 hover:bg-cyan-500/10'
+                                        >
+                                            Open Full Tutorials
+                                        </Link>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
                             <div className='grid gap-6 lg:grid-cols-3'>
                                 <Card className='lg:col-span-2 bg-slate-900/60 border-cyan-400/20'>
                                     <CardHeader>
@@ -733,6 +1171,34 @@ export default function AssetGenerator() {
                                                 <Label>Style</Label>
                                                 <Input value={style} onChange={(event) => setStyle(event.target.value)} />
                                             </div>
+                                        </div>
+                                        <div className='rounded-lg border border-cyan-500/20 bg-slate-800/40 p-3 space-y-2'>
+                                            <p className='text-xs font-medium text-cyan-200'>Project Workspace</p>
+                                            <div className='grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_auto]'>
+                                                <Select value={activeProjectId || ''} onValueChange={handleWorkspaceProjectSelect}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder='Select workspace project' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {workspaceProjects.map((project) => (
+                                                            <SelectItem key={project.id} value={project.id}>
+                                                                {project.name}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <Button type='button' variant='outline' onClick={handleCreateWorkspaceProject}>
+                                                    New Project
+                                                </Button>
+                                                <Button type='button' variant='outline' onClick={handleSaveWorkspaceProject} disabled={!activeProjectId}>
+                                                    Save Snapshot
+                                                </Button>
+                                            </div>
+                                            {activeWorkspaceProject && (
+                                                <p className='text-[11px] text-slate-300'>
+                                                    Assets in project: {Array.isArray(activeWorkspaceProject.assets) ? activeWorkspaceProject.assets.length : 0}
+                                                </p>
+                                            )}
                                         </div>
                                         <div className='rounded-lg border border-cyan-500/20 bg-slate-800/40 p-3'>
                                             {selectedGenerator.mode === 'video' ? (
@@ -924,10 +1390,15 @@ export default function AssetGenerator() {
                                                 Queue Engine Pack
                                             </Button>
                                         </div>
-                                        {(generating || generationStatus === 'Generation failed.') && (
+                                        {(generating || Boolean(generationStatus)) && (
                                             <div className='space-y-1.5'>
                                                 <Progress value={generationProgress} />
-                                                <p className='text-xs text-slate-300'>{generationStatus}</p>
+                                                <div className='flex items-center justify-between gap-2 text-xs'>
+                                                    <p className='text-slate-300'>{generationStatus}</p>
+                                                    <Badge variant='outline' className='border-cyan-400/35 text-cyan-100'>
+                                                        {PHASE_LABELS[generationPhase] || 'Queue'}
+                                                    </Badge>
+                                                </div>
                                             </div>
                                         )}
                                     </CardContent>
@@ -949,7 +1420,7 @@ export default function AssetGenerator() {
                                                             <div className='text-center px-6'>
                                                                 <Cube size={42} className='mx-auto text-cyan-300 mb-3' />
                                                                 <p className='text-sm text-cyan-100'>3D asset is ready for export.</p>
-                                                                <p className='text-xs text-slate-400 mt-1 break-all'>{resultUrl}</p>
+                                                                <p className='text-xs text-slate-400 mt-1 break-all'>{resultSourceUrl || resultUrl}</p>
                                                             </div>
                                                         )
                                             ) : (

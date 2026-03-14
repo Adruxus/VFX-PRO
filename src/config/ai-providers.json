@@ -23,8 +23,11 @@
     {
       "id": "wan-2.1-t2v",
       "name": "Wan 2.1 (Text-to-Video)",
-      "provider": "replicate",
-      "modelId": "alibaba/wan-2.1-t2v",
+      "provider": "huggingface",
+      "modelId": "Wan-AI/Wan2.1",
+      "spaceId": "Wan-AI/Wan2.1",
+      "apiType": "gradio",
+      "apiPath": "/t2v_generation_async",
       "tier": "budget",
       "price": "$0.05-0.10",
       "resolution": "480p-720p",
@@ -32,11 +35,15 @@
       "fps": 16,
       "speed": "17-57s",
       "quality": 7,
-      "bestFor": "Quick previews, storyboarding"
+      "bestFor": "Quick previews, storyboarding",
+      "failoverModelIds": [
+        "wan-2.1-space",
+        "ltx-video-fast"
+      ]
     },
     {
       "id": "seedance-1-lite",
-      "name": "Seedance 1 Lite",
+      "name": "Seedance 1 Fast (Lite)",
       "provider": "replicate",
       "modelId": "bytedance/seedance-1-lite",
       "tier": "budget",
@@ -46,7 +53,11 @@
       "fps": 24,
       "speed": "25-70s",
       "quality": 7.5,
-      "bestFor": "Cost-effective loops"
+      "bestFor": "Cost-effective loops",
+      "failoverModelIds": [
+        "ltx-video-fast",
+        "wan-2.1-space"
+      ]
     },
     {
       "id": "hailuo-02-fast",
@@ -60,7 +71,9 @@
       "fps": 24,
       "speed": "41-76s",
       "quality": 8,
-      "bestFor": "Fast iteration, testing"
+      "bestFor": "Fast iteration, testing",
+      "supportsImageInput": true,
+      "requiresImageInput": true
     },
     {
       "id": "hailuo-02",
@@ -74,7 +87,8 @@
       "fps": 24,
       "speed": "41-400s",
       "quality": 8.5,
-      "bestFor": "High quality loops, VJ content"
+      "bestFor": "High quality loops, VJ content",
+      "supportsImageInput": true
     },
     {
       "id": "seedance-1-pro",
@@ -88,7 +102,11 @@
       "fps": 24,
       "speed": "31-95s",
       "quality": 8.5,
-      "bestFor": "Professional VJ loops"
+      "bestFor": "Professional VJ loops",
+      "failoverModelIds": [
+        "runway-gen4-turbo",
+        "ltx-video-fast"
+      ]
     },
     {
       "id": "runway-gen4-turbo",
@@ -145,6 +163,187 @@
       "speed": "92s",
       "quality": 10,
       "bestFor": "Maximum quality, hero content"
+    },
+    {
+      "id": "wan-2.2-animate",
+      "name": "Wan2.2 Animate (Space)",
+      "provider": "huggingface",
+      "modelId": "Wan-AI/Wan2.2-Animate",
+      "spaceId": "Wan-AI/Wan2.2-Animate",
+      "apiType": "gradio",
+      "apiPath": "/predict",
+      "tier": "standard",
+      "price": "$0.24 est",
+      "resolution": "720p-1080p",
+      "duration": "4-8s",
+      "fps": 24,
+      "speed": "40-120s",
+      "quality": 8.7,
+      "bestFor": "Prompted motion with optional reference image/video",
+      "supportsImageInput": true,
+      "supportsVideoInput": true,
+      "failoverModelIds": [
+        "wan-2.2-14b-fast",
+        "wan-2.1-space",
+        "ltx-video-fast"
+      ]
+    },
+    {
+      "id": "live-portrait",
+      "name": "Live Portrait (Space)",
+      "provider": "huggingface",
+      "modelId": "KlingTeam/LivePortrait",
+      "spaceId": "KlingTeam/LivePortrait",
+      "apiType": "gradio",
+      "apiPath": "/gpu_wrapped_execute_video",
+      "tier": "budget",
+      "price": "$0.08 est",
+      "resolution": "Space-defined",
+      "duration": "Driver-video length",
+      "fps": 24,
+      "speed": "20-90s",
+      "quality": 8.2,
+      "bestFor": "Portrait animation from source image + motion video",
+      "supportsImageInput": true,
+      "supportsVideoInput": true,
+      "requiresImageInput": true,
+      "requiresVideoInput": true,
+      "failoverModelIds": [
+        "wan-2.2-animate",
+        "wan-2.1-space"
+      ]
+    },
+    {
+      "id": "wan-2.2-14b-fast",
+      "name": "Wan2.2 14B Fast (Space)",
+      "provider": "huggingface",
+      "modelId": "rahul7star/Wan2.2-T2V-A14B",
+      "spaceId": "rahul7star/Wan2.2-T2V-A14B",
+      "apiType": "gradio",
+      "apiPath": "/generate_video_with_upload",
+      "tier": "premium",
+      "price": "$0.42 est",
+      "resolution": "512p-720p",
+      "duration": "3-8s",
+      "fps": 24,
+      "speed": "30-140s",
+      "quality": 8.8,
+      "bestFor": "Faster Wan2.2 generation with prompt and optional image seed",
+      "supportsImageInput": true,
+      "requiresImageInput": true,
+      "failoverModelIds": [
+        "wan-2.1-space",
+        "ltx-video-fast"
+      ]
+    },
+    {
+      "id": "wan-2.1-space",
+      "name": "Wan 2.1 (Space)",
+      "provider": "huggingface",
+      "modelId": "Wan-AI/Wan2.1",
+      "spaceId": "Wan-AI/Wan2.1",
+      "apiType": "gradio",
+      "apiPath": "/t2v_generation_async",
+      "tier": "budget",
+      "price": "$0.10 est",
+      "resolution": "480p-720p",
+      "duration": "4-8s",
+      "fps": 16,
+      "speed": "30-180s",
+      "quality": 8.0,
+      "bestFor": "Cost-effective Wan text-to-video baseline",
+      "failoverModelIds": [
+        "ltx-video-fast",
+        "stable-video-diffusion-1.1"
+      ]
+    },
+    {
+      "id": "stable-video-diffusion-1.1",
+      "name": "Stable Video Diffusion 1.1 (Space)",
+      "provider": "huggingface",
+      "modelId": "multimodalart/stable-video-diffusion",
+      "spaceId": "multimodalart/stable-video-diffusion",
+      "apiType": "gradio",
+      "apiPath": "/video",
+      "tier": "standard",
+      "price": "$0.18 est",
+      "resolution": "576x1024",
+      "duration": "2-4s",
+      "fps": 14,
+      "speed": "20-70s",
+      "quality": 8.1,
+      "bestFor": "Image-to-video diffusion clips",
+      "supportsImageInput": true,
+      "requiresImageInput": true,
+      "failoverModelIds": [
+        "wan-2.2-animate",
+        "wan-2.1-space"
+      ]
+    },
+    {
+      "id": "ltx-video-fast",
+      "name": "LTX Video Fast (Space)",
+      "provider": "huggingface",
+      "modelId": "Lightricks/ltx-video-distilled",
+      "spaceId": "Lightricks/ltx-video-distilled",
+      "apiType": "gradio",
+      "apiPath": "/text_to_video",
+      "tier": "standard",
+      "price": "$0.14 est",
+      "resolution": "512p-720p",
+      "duration": "4-8s",
+      "fps": 24,
+      "speed": "20-80s",
+      "quality": 8.3,
+      "bestFor": "Low-latency text-to-video experimentation",
+      "failoverModelIds": [
+        "wan-2.1-space",
+        "wan-2.2-animate"
+      ]
+    },
+    {
+      "id": "nsfw-uncensored-video",
+      "name": "NSFW Uncensored Video (Space)",
+      "provider": "huggingface",
+      "modelId": "Heartsync/NSFW-Uncensored-video2",
+      "spaceId": "Heartsync/NSFW-Uncensored-video2",
+      "apiType": "gradio",
+      "apiPath": "/generate_video",
+      "tier": "premium",
+      "price": "$0.20 est",
+      "resolution": "Space-defined",
+      "duration": "3-8s",
+      "fps": 24,
+      "speed": "30-120s",
+      "quality": 8.4,
+      "bestFor": "Restricted high-variance video generations",
+      "supportsImageInput": true,
+      "failoverModelIds": [
+        "wan-2.2-14b-fast",
+        "wan-2.2-animate"
+      ]
+    },
+    {
+      "id": "ai-video-composer",
+      "name": "AI Video Composer (Space)",
+      "provider": "huggingface",
+      "modelId": "huggingface-projects/ai-video-composer",
+      "spaceId": "huggingface-projects/ai-video-composer",
+      "apiType": "gradio",
+      "apiPath": "/update",
+      "tier": "standard",
+      "price": "$0.16 est",
+      "resolution": "Space-defined",
+      "duration": "Space-defined",
+      "fps": 24,
+      "speed": "20-90s",
+      "quality": 7.9,
+      "bestFor": "Prompt-assisted video composition workflows",
+      "supportsImageInput": true,
+      "failoverModelIds": [
+        "wan-2.2-animate",
+        "wan-2.1-space"
+      ]
     }
   ],
   "imageModels": [
@@ -207,6 +406,74 @@
       "speed": "2-5s",
       "quality": 8,
       "bestFor": "Free overlays, pattern generation"
+    }
+  ],
+  "threeDModels": [
+    {
+      "id": "trellis-2",
+      "name": "TRELLIS.2 (Image-to-3D)",
+      "provider": "huggingface",
+      "modelId": "microsoft/TRELLIS.2",
+      "spaceId": "microsoft/TRELLIS.2",
+      "apiType": "gradio",
+      "tier": "standard",
+      "price": "$0.35 est",
+      "resolution": "512-1536",
+      "speed": "1-3 min",
+      "quality": 9.1,
+      "bestFor": "High-detail image-to-3D mesh output",
+      "supportsImageInput": true,
+      "supportedInApp": true
+    },
+    {
+      "id": "hunyuan3d-2.1",
+      "name": "Hunyuan3D-2.1",
+      "provider": "huggingface",
+      "modelId": "tencent/Hunyuan3D-2.1",
+      "spaceId": "tencent/Hunyuan3D-2.1",
+      "apiType": "gradio",
+      "tier": "premium",
+      "price": "$0.45 est",
+      "resolution": "Turbo/Fast/Standard",
+      "speed": "2-5 min",
+      "quality": 9.2,
+      "bestFor": "Production-ready asset generation with export options",
+      "supportsImageInput": true,
+      "supportedInApp": true
+    },
+    {
+      "id": "sparc3d",
+      "name": "Sparc3D (Space)",
+      "provider": "huggingface",
+      "modelId": "ilcve21/Sparc3D",
+      "spaceId": "ilcve21/Sparc3D",
+      "apiType": "external",
+      "tier": "premium",
+      "price": "$0.40 est",
+      "resolution": "Space-defined",
+      "speed": "Space-defined",
+      "quality": 8.9,
+      "bestFor": "Community Sparc3D workflows",
+      "supportsImageInput": true,
+      "supportedInApp": false,
+      "supportNote": "Space currently exposes no callable public API endpoint for in-app generation."
+    },
+    {
+      "id": "3d-arena",
+      "name": "3D Arena (Space)",
+      "provider": "huggingface",
+      "modelId": "3d-arena/3d-arena",
+      "spaceId": "3d-arena/3d-arena",
+      "apiType": "external",
+      "tier": "standard",
+      "price": "$0.30 est",
+      "resolution": "Space-defined",
+      "speed": "Space-defined",
+      "quality": 8.5,
+      "bestFor": "3D arena comparison and benchmark workflows",
+      "supportsImageInput": false,
+      "supportedInApp": false,
+      "supportNote": "Space is Docker-based and does not expose a standard Gradio prediction API."
     }
   ]
 }

@@ -20,6 +20,46 @@
       ]
     },
     {
+      "id": "unreal-engine-5",
+      "name": "Unreal Engine 5",
+      "description": "Real-time 3D engine pipeline for cinematic visuals",
+      "logo": "\ud83e\udde9",
+      "category": "3d-engine",
+      "formats": [
+        "uasset",
+        "fbx",
+        "glb",
+        "mp4",
+        "mov"
+      ],
+      "features": [
+        "Niagara-ready FX assets",
+        "Sequencer-friendly loop timing",
+        "Blueprint metadata support",
+        "Stage visualization workflows"
+      ]
+    },
+    {
+      "id": "unity-3d",
+      "name": "Unity 3D",
+      "description": "Real-time 3D runtime for live visuals and interactive shows",
+      "logo": "\ud83e\uddf1",
+      "category": "3d-engine",
+      "formats": [
+        "prefab",
+        "mat",
+        "shadergraph",
+        "mp4",
+        "png"
+      ],
+      "features": [
+        "URP and HDRP compatible exports",
+        "VFX Graph starter templates",
+        "Timeline marker metadata",
+        "Addressables packaging support"
+      ]
+    },
+    {
       "id": "touchdesigner",
       "name": "TouchDesigner",
       "description": "Node-based visual programming",

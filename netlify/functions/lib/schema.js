@@ -149,6 +149,15 @@ export const BillingLedgerEntrySchema = z.object({
     metadata: z.record(z.any()).nullable().optional(),
 })
 
+export const BillingCreditsChargeSchema = z.object({
+    user_id: z.string().min(1).max(200),
+    plan_tier: z.string().min(1).max(80).optional(),
+    seed_credits: z.number().int().min(0).max(10000000).optional(),
+    cost: z.number().int().min(1).max(1000000),
+    idempotency_key: z.string().min(3).max(200).optional(),
+    metadata: z.record(z.any()).nullable().optional(),
+})
+
 export function validateSchema(schema, payload) {
     const parsed = schema.safeParse(payload)
     if (parsed.success) return { ok: true, value: parsed.data }

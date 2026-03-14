@@ -1,0 +1,79 @@
+{
+  "generatedAt": "2026-03-08T18:33:10.378Z",
+  "supportedFormats": [
+    ".fbx",
+    ".glb",
+    ".gltf",
+    ".jpeg",
+    ".jpg",
+    ".obj",
+    ".png",
+    ".webp"
+  ],
+  "auxiliaryFormats": [
+    ".bin",
+    ".ini",
+    ".json",
+    ".mtl",
+    ".txt",
+    ".url"
+  ],
+  "extensions": [
+    {
+      "extension": ".blend",
+      "count": 310,
+      "examples": [
+        "desktop-import/Characters_psx/Characters_psx/Models/Characters_PSX.blend",
+        "desktop-import/futuristic_low_poly_city_by_niko/futuristic low poly city by niko.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Character/Blends/Character.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Character/Blends/Character_Gun.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Character/Blends/Character_HumanoidRig.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Cubes/Blends/Cube_Bricks.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Cubes/Blends/Cube_Crate.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Cubes/Blends/Cube_Default.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Cubes/Blends/Cube_Dirt_Single.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Cubes/Blends/Cube_Exclamation.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Cubes/Blends/Cube_Grass_Single.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Cubes/Blends/Cube_Question.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Cubes/Blends/Cube_Spikes.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Enemies/Blends/Bee.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Enemies/Blends/Crab.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Enemies/Blends/Enemy.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Enemies/Blends/Skull.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Level and Mechanics/Blends/Arrow.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Level and Mechanics/Blends/Arrow_Side.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Level and Mechanics/Blends/Arrow_Up.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Level and Mechanics/Blends/Bomb.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Level and Mechanics/Blends/Bouncer.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Level and Mechanics/Blends/Bridge_Modular.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Level and Mechanics/Blends/Bridge_Modular_Center.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Level and Mechanics/Blends/Bridge_Small.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Level and Mechanics/Blends/Cannon.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Level and Mechanics/Blends/Cannonball.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Level and Mechanics/Blends/Chest.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Level and Mechanics/Blends/Door.blend",
+        "desktop-import/Ultimate_Platformer_Pack_by_Quaternius/Ultimate Platformer Pack - Dec 2021/Level and Mechanics/Blends/Fence_1.blend"
+      ]
+    },
+    {
+      "extension": ".hdr",
+      "count": 1,
+      "examples": [
+        "desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/sky_background/autumn_field_puresky_4k.hdr"
+      ]
+    }
+  ],
+  "recommendations": {
+    "blend": {
+      "reason": ".blend is not runtime-loadable in three.js.",
+      "convertTo": [
+        ".glb",
+        ".gltf"
+      ],
+      "docs": [
+        "https://threejs.org/manual/#en/load-obj",
+        "https://docs.blender.org/manual/en/latest/addons/import_export/scene_gltf2.html"
+      ]
+    }
+  }
+}

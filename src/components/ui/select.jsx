@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
-import { Check, ChevronDown } from "lucide-react"
+import { Check, CaretDown } from '@/components/icons/futureIcons'
 import { cn } from "@/lib/utils"
 
 const Select = SelectPrimitive.Root
@@ -18,7 +18,7 @@ const SelectTrigger = React.forwardRef(({ className, children, ...props }, ref) 
     >
         {children}
         <SelectPrimitive.Icon asChild>
-            <ChevronDown className="h-4 w-4 opacity-50" />
+            <CaretDown size={16} className="opacity-50" />
         </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
 ))
@@ -52,7 +52,7 @@ const SelectItem = React.forwardRef(({ className, children, ...props }, ref) => 
     >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
-        <Check className="h-4 w-4 text-purple-400" />
+        <Check size={16} className="text-purple-400" />
       </SelectPrimitive.ItemIndicator>
     </span>
         <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
@@ -66,3 +66,4 @@ const SelectLabel = React.forwardRef(({ className, ...props }, ref) => (
 SelectLabel.displayName = SelectPrimitive.Label.displayName
 
 export { Select, SelectGroup, SelectValue, SelectTrigger, SelectContent, SelectLabel, SelectItem }
+

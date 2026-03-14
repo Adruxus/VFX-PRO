@@ -18,12 +18,16 @@ export function useWaveform(containerRef, audioUrl) {
             barWidth: 2, barGap: 1, barRadius: 2,
             height: 80, normalize: true, url: audioUrl,
         })
-        ws.current.on('ready', () => { setReady(true); setDur(ws.current.getDuration()) })
-        ws.current.on('play', () => setPlaying(true))
-        ws.current.on('pause', () => setPlaying(false))
-        ws.current.on('timeupdate', t => setTime(t))
-        return () => ws.current?.destroy()
-    }, [audioUrl])
+        const instance = ws.current
+        instance.on('ready', () => { setReady(true); setDur(instance.getDuration()) })
+        instance.on('play', () => setPlaying(true))
+        instance.on('pause', () => setPlaying(false))
+        instance.on('timeupdate', t => setTime(t))
+        return () => {
+            instance.unAll?.()
+            instance.destroy?.({ removeMediaElement: true })
+        }
+    }, [audioUrl, containerRef])
 
     const toggle = useCallback(() => ws.current?.playPause(), [])
     const seek = useCallback(p => ws.current?.seekTo(p), [])

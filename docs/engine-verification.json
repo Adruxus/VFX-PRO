@@ -1,0 +1,80 @@
+{
+  "generatedAt": "2026-03-09T07:55:00.269Z",
+  "passed": 11,
+  "failed": 0,
+  "checks": [
+    {
+      "id": "scene-presets",
+      "pass": true,
+      "message": "Legacy demo presets removed and licensed presets are active.",
+      "details": {}
+    },
+    {
+      "id": "control-profile",
+      "pass": true,
+      "message": "Open Turntable references removed from engine controls.",
+      "details": {}
+    },
+    {
+      "id": "asset-staging-source",
+      "pass": true,
+      "message": "Preview staging is wired to runtime licensed manifest JSON.",
+      "details": {}
+    },
+    {
+      "id": "map-assembly",
+      "pass": true,
+      "message": "Map assembly flow is wired in UI and viewport layout.",
+      "details": {}
+    },
+    {
+      "id": "viewport-proxies",
+      "pass": true,
+      "message": "Procedural proxy/demo scene mesh path removed.",
+      "details": {}
+    },
+    {
+      "id": "model-loaders",
+      "pass": true,
+      "message": "GLTF/FBX/OBJ loaders are present.",
+      "details": {}
+    },
+    {
+      "id": "fbx-preview-flow",
+      "pass": true,
+      "message": "FBX is enabled in preview upload and model loader sidecar resolution.",
+      "details": {}
+    },
+    {
+      "id": "manifest-volume",
+      "pass": true,
+      "message": "Licensed manifest has substantial real assets.",
+      "details": {
+        "total": 4161,
+        "models": 3666,
+        "sprites": 495
+      }
+    },
+    {
+      "id": "manifest-fields",
+      "pass": true,
+      "message": "Runtime manifest includes render URL and file extension metadata.",
+      "details": {}
+    },
+    {
+      "id": "manifest-url-encoding",
+      "pass": true,
+      "message": "Manifest render URLs are URL-safe (no raw spaces).",
+      "details": {}
+    },
+    {
+      "id": "asset-storage",
+      "pass": true,
+      "message": "Asset root contains real model files for runtime rendering.",
+      "details": {
+        "modelFileCount": 3666,
+        "spriteFileCount": 495
+      }
+    }
+  ]
+}

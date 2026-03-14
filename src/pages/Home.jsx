@@ -1,60 +1,197 @@
 import { Helmet } from 'react-helmet-async'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { Link } from 'react-router-dom'
-import { Zap, Sparkles, Download, Layers, Wand2, Palette, Video, Music } from 'lucide-react'
+import {
+    Sparkle,
+    Lightning,
+    MusicNotes,
+    VideoCamera,
+    FilmSlate,
+    HandCoins,
+    Rows,
+    MagicWand,
+    Waveform,
+    DesktopTower,
+    RocketLaunch,
+    Users,
+} from '@/components/icons/futureIcons'
+
+const audienceCards = [
+    {
+        icon: MusicNotes,
+        title: 'DJs and Musicians',
+        description:
+            'Generate unique AI-driven VJ loops and music videos that react to sound and live audience energy with faster production cycles.',
+    },
+    {
+        icon: VideoCamera,
+        title: 'YouTubers and Vloggers',
+        description:
+            'Design high-impact intros, dynamic cutscenes, and visual stories with storyboard tools and a growing asset catalog.',
+    },
+    {
+        icon: FilmSlate,
+        title: 'Filmmakers',
+        description:
+            'Rapidly prototype visual concepts, organize sequence timing, and build striking VFX scenes for production workflows.',
+    },
+    {
+        icon: HandCoins,
+        title: 'Asset Creators',
+        description:
+            'Publish and monetize custom assets, reusable templates, and unique AI styles in a creator-first marketplace.',
+    },
+]
+
+const keyFeatures = [
+    {
+        icon: MagicWand,
+        title: 'AI-Driven VJ Asset Creation',
+        description: 'Generate bespoke loops and visuals from audio, mood, and creative briefs.',
+    },
+    {
+        icon: Waveform,
+        title: 'Real-Time AI Visual Suggestions',
+        description: 'Live adaptation pipeline that recommends visual changes using reaction and audio telemetry.',
+    },
+    {
+        icon: Rows,
+        title: 'Setlist and Storyboard Tools',
+        description: 'Drag-and-drop planning for performances, intros, segments, and film sequence structures.',
+    },
+    {
+        icon: DesktopTower,
+        title: 'Engine-Ready Scene Pipeline',
+        description: 'Build once, preview instantly, and sync assets into Unreal and Unity runtime targets.',
+    },
+]
 
 export default function Home() {
-    const features = [
-        { icon: Wand2, title: 'AI-Powered Generation', description: 'Create stunning visual assets with Galaxy AI' },
-        { icon: Layers, title: 'Multi-Format Export', description: 'Export to all major VJ software' },
-        { icon: Video, title: 'Real-Time Preview', description: 'See your creations instantly' },
-        { icon: Palette, title: 'Custom Styles', description: 'Hundreds of visual styles' },
-        { icon: Music, title: 'Audio Reactive', description: 'Sync visuals with music' },
-        { icon: Download, title: 'Instant Download', description: 'High-quality assets instantly' }
-    ]
-
     return (
         <>
-            <Helmet><title>VJ Studio Pro - Professional Visual Asset Creation</title></Helmet>
-            <div className="space-y-20">
-                <section className="text-center space-y-8 py-12">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/20 rounded-full mb-6">
-                        <Sparkles className="w-4 h-4 text-purple-400" />
-                        <span className="text-sm text-purple-400 font-medium">AI-Powered Visual Creation</span>
-                    </div>
-                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6">
-                        <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">Create Epic Visuals</span>
-                        <br /><span className="text-white">For Any Stage</span>
-                    </h1>
-                    <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-8">
-                        Professional VJ visual asset creation platform powered by Galaxy AI. Generate stunning content for Resolume, TouchDesigner, MadMapper, and more.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Link to="/generator"><Button size="lg" className="bg-gradient-to-r from-purple-500 to-pink-500"><Sparkles className="w-5 h-5 mr-2" />Start Creating</Button></Link>
-                        <Link to="/marketplace"><Button size="lg" variant="outline" className="border-purple-500/20">Browse Marketplace</Button></Link>
+            <Helmet>
+                <title>VFX Studios - The AI-Powered Canvas for Dynamic Visuals</title>
+            </Helmet>
+            <div className='space-y-14'>
+                <section className='relative overflow-hidden rounded-3xl border border-cyan-400/30 bg-[#07152f]/70 p-8 md:p-12'>
+                    <div className='pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(34,211,238,0.18),transparent_45%),radial-gradient(circle_at_100%_10%,rgba(244,114,182,0.18),transparent_40%)]' />
+                    <div className='relative space-y-6 max-w-4xl'>
+                        <Badge variant='outline' className='border-cyan-400/40 text-cyan-200'>
+                            <Sparkle size={14} className='mr-1.5' />
+                            AI-Powered Canvas
+                        </Badge>
+                        <h1 className='text-4xl md:text-6xl font-bold tracking-tight text-white'>
+                            VFX Studios: The AI-Powered Canvas for Dynamic Visuals
+                        </h1>
+                        <p className='text-lg md:text-xl text-cyan-50/85 leading-relaxed'>
+                            Unleash your visual potential. VFX Studios is the all-in-one platform for VJs, musicians,
+                            YouTubers, vloggers, filmmakers, and visual creators to create, organize, and monetize
+                            stunning content with intelligent AI workflows.
+                        </p>
+                        <p className='text-slate-300 max-w-3xl'>
+                            Dubbed the canvas of VFX, we combine generation, scene editing, live sync, and publishing
+                            into one cybernetic workspace focused on accessibility, creativity, and profitability.
+                        </p>
+                        <div className='flex flex-col sm:flex-row gap-3'>
+                            <Button asChild size='lg' variant='gradient'>
+                                <Link to='/generator'>
+                                    <Lightning size={18} className='mr-2' />
+                                    Launch Generator
+                                </Link>
+                            </Button>
+                            <Button asChild size='lg' variant='outline' className='border-cyan-400/40'>
+                                <Link to='/engines'>Open 3D Scene Editor</Link>
+                            </Button>
+                        </div>
                     </div>
                 </section>
-                <section className="space-y-8">
-                    <div className="text-center space-y-4">
-                        <h2 className="text-3xl md:text-4xl font-bold text-white">Everything You Need</h2>
-                        <p className="text-gray-400 max-w-2xl mx-auto">Powerful tools for VJ professionals</p>
+
+                <section className='space-y-6'>
+                    <div className='flex items-center gap-2'>
+                        <Users size={20} className='text-cyan-300' />
+                        <h2 className='text-2xl md:text-3xl font-bold text-white'>Who Is VFX Studios For?</h2>
                     </div>
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {features.map(f => (
-                            <Card key={f.title} className="bg-slate-900/50 border-purple-500/20">
+                    <div className='grid gap-5 md:grid-cols-2'>
+                        {audienceCards.map((item) => (
+                            <Card key={item.title} className='bg-[#09152d]/70 border-cyan-400/25'>
                                 <CardHeader>
-                                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center mb-4">
-                                        <f.icon className="w-6 h-6 text-purple-400" />
-                                    </div>
-                                    <CardTitle className="text-white">{f.title}</CardTitle>
-                                    <CardDescription className="text-gray-400">{f.description}</CardDescription>
+                                    <CardTitle className='text-cyan-100 flex items-center gap-2'>
+                                        <item.icon size={20} weight='duotone' className='text-fuchsia-300' />
+                                        {item.title}
+                                    </CardTitle>
+                                    <CardDescription className='text-slate-300'>{item.description}</CardDescription>
                                 </CardHeader>
                             </Card>
                         ))}
                     </div>
                 </section>
+
+                <section className='space-y-6'>
+                    <div className='flex items-center gap-2'>
+                        <RocketLaunch size={20} className='text-cyan-300' />
+                        <h2 className='text-2xl md:text-3xl font-bold text-white'>Key Features</h2>
+                    </div>
+                    <div className='grid gap-5 md:grid-cols-2'>
+                        {keyFeatures.map((feature) => (
+                            <Card key={feature.title} className='bg-[#081327]/80 border-fuchsia-400/25'>
+                                <CardHeader>
+                                    <CardTitle className='text-white flex items-center gap-2'>
+                                        <feature.icon size={20} weight='duotone' className='text-cyan-300' />
+                                        {feature.title}
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className='text-slate-300 text-sm'>{feature.description}</p>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                </section>
+
+                <section className='grid gap-6 lg:grid-cols-2'>
+                    <Card className='bg-[#0a1222]/80 border-cyan-400/25'>
+                        <CardHeader>
+                            <CardTitle className='text-white'>Empowering Monetization Ecosystem</CardTitle>
+                            <CardDescription className='text-slate-300'>
+                                VFX Studios supports 15 monetization avenues for creators and businesses.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className='space-y-3 text-sm text-slate-300'>
+                            <p>Sell custom assets, templates, and AI styles directly through the platform.</p>
+                            <p>
+                                Activate B2B collaborations with music hardware companies, venues, and festivals
+                                through partnership-ready pipeline tools.
+                            </p>
+                            <p>
+                                Move from idea to distribution with licensing metadata, export packages, and engine sync.
+                            </p>
+                        </CardContent>
+                    </Card>
+                    <Card className='bg-[#0a1222]/80 border-fuchsia-400/25'>
+                        <CardHeader>
+                            <CardTitle className='text-white'>Why VFX Studios?</CardTitle>
+                            <CardDescription className='text-slate-300'>
+                                Built to be powerful for pros and usable for independents.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className='space-y-3 text-sm text-slate-300'>
+                            <p>
+                                We focus on intelligent tooling that removes repetitive complexity while preserving
+                                artistic control for live shows, social content, and film production.
+                            </p>
+                            <p>
+                                Join the visual revolution: create, perform, and earn with VFX Studios.
+                            </p>
+                            <Button asChild variant='gradient'>
+                                <Link to='/pricing'>Choose a Plan</Link>
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </section>
             </div>
         </>
     )
 }
+

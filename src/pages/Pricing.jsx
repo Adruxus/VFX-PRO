@@ -5,13 +5,13 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import { Check, X, Zap, Crown, Infinity, Sparkles, CreditCard } from 'lucide-react'
+import { Check, X, Lightning, Crown, InfinitySymbol as InfinityIcon, Sparkle, CreditCard } from '@/components/icons/futureIcons'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 const PLANS = [
     {
-        name: 'Free', monthly: 0, yearly: 0, credits: '50 credits/mo', icon: Zap,
+        name: 'Free', monthly: 0, yearly: 0, credits: '50 credits/mo', icon: Lightning,
         color: 'from-slate-500 to-slate-600',
         desc: 'Try VJ Studio Pro risk-free',
         features: [
@@ -27,7 +27,7 @@ const PLANS = [
         cta: 'Get Started Free', popular: false,
     },
     {
-        name: 'Creator', monthly: 19, yearly: 15, credits: '500 credits/mo', icon: Sparkles,
+        name: 'Creator', monthly: 19, yearly: 15, credits: '500 credits/mo', icon: Sparkle,
         color: 'from-purple-500 to-violet-600',
         desc: 'For independent VJs',
         features: [
@@ -59,7 +59,7 @@ const PLANS = [
         cta: 'Start Free Trial', popular: true,
     },
     {
-        name: 'Studio', monthly: 149, yearly: 119, credits: '10,000 credits/mo', icon: Infinity,
+        name: 'Studio', monthly: 149, yearly: 119, credits: '10,000 credits/mo', icon: InfinityIcon,
         color: 'from-pink-500 to-rose-500',
         desc: 'For festivals & studios',
         features: [
@@ -196,3 +196,4 @@ export default function Pricing() {
         </>
     )
 }
+

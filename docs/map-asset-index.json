@@ -1,0 +1,1448 @@
+{
+  "generatedAt": "2026-03-08T18:33:11.339Z",
+  "totalCandidates": 1598,
+  "selectedCount": 120,
+  "layoutPreset": "licensed-map-assembly",
+  "assets": [
+    {
+      "id": "licensed-0001-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "ceiling",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/building/ceiling.glb",
+      "suggestedPosition": {
+        "x": -16.5,
+        "y": 0,
+        "z": -14
+      }
+    },
+    {
+      "id": "licensed-0002-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "floor stone",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/building/floor_stone.glb",
+      "suggestedPosition": {
+        "x": -13.5,
+        "y": 0,
+        "z": -14
+      }
+    },
+    {
+      "id": "licensed-0003-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "floor wood",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/building/floor_wood.glb",
+      "suggestedPosition": {
+        "x": -10.5,
+        "y": 0,
+        "z": -14
+      }
+    },
+    {
+      "id": "licensed-0004-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "pillar",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/building/pillar.glb",
+      "suggestedPosition": {
+        "x": -7.5,
+        "y": 0,
+        "z": -14
+      }
+    },
+    {
+      "id": "licensed-0006-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "wall arched",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/building/wall_arched.glb",
+      "suggestedPosition": {
+        "x": -4.5,
+        "y": 0,
+        "z": -14
+      }
+    },
+    {
+      "id": "licensed-0007-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "wall archedwindow gated",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/building/wall_archedwindow_gated.glb",
+      "suggestedPosition": {
+        "x": -1.5,
+        "y": 0,
+        "z": -14
+      }
+    },
+    {
+      "id": "licensed-0008-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "wall corner",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/building/wall_corner.glb",
+      "suggestedPosition": {
+        "x": 1.5,
+        "y": 0,
+        "z": -14
+      }
+    },
+    {
+      "id": "licensed-0009-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "wall cracked",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/building/wall_cracked.glb",
+      "suggestedPosition": {
+        "x": 4.5,
+        "y": 0,
+        "z": -14
+      }
+    },
+    {
+      "id": "licensed-0010-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "wall doorway",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/building/wall_doorway.glb",
+      "suggestedPosition": {
+        "x": 7.5,
+        "y": 0,
+        "z": -14
+      }
+    },
+    {
+      "id": "licensed-0011-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "wall half endcap",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/building/wall_half_endcap.glb",
+      "suggestedPosition": {
+        "x": 10.5,
+        "y": 0,
+        "z": -14
+      }
+    },
+    {
+      "id": "licensed-0012-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "wall shelved",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/building/wall_shelved.glb",
+      "suggestedPosition": {
+        "x": 13.5,
+        "y": 0,
+        "z": -14
+      }
+    },
+    {
+      "id": "licensed-0013-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "wall tsplit",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/building/wall_tsplit.glb",
+      "suggestedPosition": {
+        "x": 16.5,
+        "y": 0,
+        "z": -14
+      }
+    },
+    {
+      "id": "licensed-0014-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "wall window closed",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/building/wall_window_closed.glb",
+      "suggestedPosition": {
+        "x": -16.5,
+        "y": 0,
+        "z": -11
+      }
+    },
+    {
+      "id": "licensed-0005-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "wall",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/building/wall.glb",
+      "suggestedPosition": {
+        "x": -13.5,
+        "y": 0,
+        "z": -11
+      }
+    },
+    {
+      "id": "licensed-0016-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "banner mounted",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/props/banner_mounted.glb",
+      "suggestedPosition": {
+        "x": -10.5,
+        "y": 0,
+        "z": -11
+      }
+    },
+    {
+      "id": "licensed-0017-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "candles",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/props/candles.glb",
+      "suggestedPosition": {
+        "x": -7.5,
+        "y": 0,
+        "z": -11
+      }
+    },
+    {
+      "id": "licensed-0018-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "chair",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/props/chair.glb",
+      "suggestedPosition": {
+        "x": -4.5,
+        "y": 0,
+        "z": -11
+      }
+    },
+    {
+      "id": "licensed-0019-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "chest gold",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/props/chest_gold.glb",
+      "suggestedPosition": {
+        "x": -1.5,
+        "y": 0,
+        "z": -11
+      }
+    },
+    {
+      "id": "licensed-0020-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "coin stack",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/props/coin_stack.glb",
+      "suggestedPosition": {
+        "x": 1.5,
+        "y": 0,
+        "z": -11
+      }
+    },
+    {
+      "id": "licensed-0021-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "crates stacked",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/props/crates_stacked.glb",
+      "suggestedPosition": {
+        "x": 4.5,
+        "y": 0,
+        "z": -11
+      }
+    },
+    {
+      "id": "licensed-0022-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "keg decorated",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/props/keg_decorated.glb",
+      "suggestedPosition": {
+        "x": 7.5,
+        "y": 0,
+        "z": -11
+      }
+    },
+    {
+      "id": "licensed-0023-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "keyring",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/props/keyring.glb",
+      "suggestedPosition": {
+        "x": 10.5,
+        "y": 0,
+        "z": -11
+      }
+    },
+    {
+      "id": "licensed-0024-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "plate food",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/props/plate_food.glb",
+      "suggestedPosition": {
+        "x": 13.5,
+        "y": 0,
+        "z": -11
+      }
+    },
+    {
+      "id": "licensed-0025-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "sword shield",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/props/sword_shield.glb",
+      "suggestedPosition": {
+        "x": 16.5,
+        "y": 0,
+        "z": -11
+      }
+    },
+    {
+      "id": "licensed-0026-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "table medium",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/props/table_medium.glb",
+      "suggestedPosition": {
+        "x": -16.5,
+        "y": 0,
+        "z": -8
+      }
+    },
+    {
+      "id": "licensed-0027-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "table small",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/props/table_small.glb",
+      "suggestedPosition": {
+        "x": -13.5,
+        "y": 0,
+        "z": -8
+      }
+    },
+    {
+      "id": "licensed-0028-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "torch mounted",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/dungeon_assets/props/torch_mounted.glb",
+      "suggestedPosition": {
+        "x": -10.5,
+        "y": 0,
+        "z": -8
+      }
+    },
+    {
+      "id": "licensed-0032-desktop-import-brackeys-3d-game-assets-bra",
+      "title": "wall arched with collider",
+      "sourcePack": "brackeys_3d_game_assets",
+      "fileExt": "glb",
+      "renderUrl": "/licensed-assets/desktop-import/brackeys_3d_game_assets/brackeys_3d_game_assets/import_examples/wall_arched_with_collider.glb",
+      "suggestedPosition": {
+        "x": -7.5,
+        "y": 0,
+        "z": -8
+      }
+    },
+    {
+      "id": "licensed-0421-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "base",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/base.fbx",
+      "suggestedPosition": {
+        "x": -4.5,
+        "y": 0,
+        "z": -8
+      }
+    },
+    {
+      "id": "licensed-0422-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "bench",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/bench.fbx",
+      "suggestedPosition": {
+        "x": -1.5,
+        "y": 0,
+        "z": -8
+      }
+    },
+    {
+      "id": "licensed-0423-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "box A",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/box_A.fbx",
+      "suggestedPosition": {
+        "x": 1.5,
+        "y": 0,
+        "z": -8
+      }
+    },
+    {
+      "id": "licensed-0424-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "box B",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/box_B.fbx",
+      "suggestedPosition": {
+        "x": 4.5,
+        "y": 0,
+        "z": -8
+      }
+    },
+    {
+      "id": "licensed-0426-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building A withoutBase",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/building_A_withoutBase.fbx",
+      "suggestedPosition": {
+        "x": 7.5,
+        "y": 0,
+        "z": -8
+      }
+    },
+    {
+      "id": "licensed-0425-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building A",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/building_A.fbx",
+      "suggestedPosition": {
+        "x": 10.5,
+        "y": 0,
+        "z": -8
+      }
+    },
+    {
+      "id": "licensed-0428-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building B withoutBase",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/building_B_withoutBase.fbx",
+      "suggestedPosition": {
+        "x": 13.5,
+        "y": 0,
+        "z": -8
+      }
+    },
+    {
+      "id": "licensed-0427-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building B",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/building_B.fbx",
+      "suggestedPosition": {
+        "x": 16.5,
+        "y": 0,
+        "z": -8
+      }
+    },
+    {
+      "id": "licensed-0430-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building C withoutBase",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/building_C_withoutBase.fbx",
+      "suggestedPosition": {
+        "x": -16.5,
+        "y": 0,
+        "z": -5
+      }
+    },
+    {
+      "id": "licensed-0429-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building C",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/building_C.fbx",
+      "suggestedPosition": {
+        "x": -13.5,
+        "y": 0,
+        "z": -5
+      }
+    },
+    {
+      "id": "licensed-0432-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building D withoutBase",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/building_D_withoutBase.fbx",
+      "suggestedPosition": {
+        "x": -10.5,
+        "y": 0,
+        "z": -5
+      }
+    },
+    {
+      "id": "licensed-0431-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building D",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/building_D.fbx",
+      "suggestedPosition": {
+        "x": -7.5,
+        "y": 0,
+        "z": -5
+      }
+    },
+    {
+      "id": "licensed-0434-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building E withoutBase",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/building_E_withoutBase.fbx",
+      "suggestedPosition": {
+        "x": -4.5,
+        "y": 0,
+        "z": -5
+      }
+    },
+    {
+      "id": "licensed-0433-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building E",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/building_E.fbx",
+      "suggestedPosition": {
+        "x": -1.5,
+        "y": 0,
+        "z": -5
+      }
+    },
+    {
+      "id": "licensed-0436-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building F withoutBase",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/building_F_withoutBase.fbx",
+      "suggestedPosition": {
+        "x": 1.5,
+        "y": 0,
+        "z": -5
+      }
+    },
+    {
+      "id": "licensed-0435-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building F",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/building_F.fbx",
+      "suggestedPosition": {
+        "x": 4.5,
+        "y": 0,
+        "z": -5
+      }
+    },
+    {
+      "id": "licensed-0438-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building G withoutBase",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/building_G_withoutBase.fbx",
+      "suggestedPosition": {
+        "x": 7.5,
+        "y": 0,
+        "z": -5
+      }
+    },
+    {
+      "id": "licensed-0437-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building G",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/building_G.fbx",
+      "suggestedPosition": {
+        "x": 10.5,
+        "y": 0,
+        "z": -5
+      }
+    },
+    {
+      "id": "licensed-0440-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building H withoutBase",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/building_H_withoutBase.fbx",
+      "suggestedPosition": {
+        "x": 13.5,
+        "y": 0,
+        "z": -5
+      }
+    },
+    {
+      "id": "licensed-0439-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building H",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/building_H.fbx",
+      "suggestedPosition": {
+        "x": 16.5,
+        "y": 0,
+        "z": -5
+      }
+    },
+    {
+      "id": "licensed-0441-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "bush",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/bush.fbx",
+      "suggestedPosition": {
+        "x": -16.5,
+        "y": 0,
+        "z": -2
+      }
+    },
+    {
+      "id": "licensed-0442-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "car hatchback",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/car_hatchback.fbx",
+      "suggestedPosition": {
+        "x": -13.5,
+        "y": 0,
+        "z": -2
+      }
+    },
+    {
+      "id": "licensed-0443-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "car police",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/car_police.fbx",
+      "suggestedPosition": {
+        "x": -10.5,
+        "y": 0,
+        "z": -2
+      }
+    },
+    {
+      "id": "licensed-0444-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "car sedan",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/car_sedan.fbx",
+      "suggestedPosition": {
+        "x": -7.5,
+        "y": 0,
+        "z": -2
+      }
+    },
+    {
+      "id": "licensed-0445-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "car stationwagon",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/car_stationwagon.fbx",
+      "suggestedPosition": {
+        "x": -4.5,
+        "y": 0,
+        "z": -2
+      }
+    },
+    {
+      "id": "licensed-0446-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "car taxi",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/car_taxi.fbx",
+      "suggestedPosition": {
+        "x": -1.5,
+        "y": 0,
+        "z": -2
+      }
+    },
+    {
+      "id": "licensed-0448-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "dumpster",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/dumpster.fbx",
+      "suggestedPosition": {
+        "x": 1.5,
+        "y": 0,
+        "z": -2
+      }
+    },
+    {
+      "id": "licensed-0449-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "firehydrant",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/firehydrant.fbx",
+      "suggestedPosition": {
+        "x": 4.5,
+        "y": 0,
+        "z": -2
+      }
+    },
+    {
+      "id": "licensed-0451-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "road corner curved",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/road_corner_curved.fbx",
+      "suggestedPosition": {
+        "x": 7.5,
+        "y": 0,
+        "z": -2
+      }
+    },
+    {
+      "id": "licensed-0450-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "road corner",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/road_corner.fbx",
+      "suggestedPosition": {
+        "x": 10.5,
+        "y": 0,
+        "z": -2
+      }
+    },
+    {
+      "id": "licensed-0452-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "road junction",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/road_junction.fbx",
+      "suggestedPosition": {
+        "x": 13.5,
+        "y": 0,
+        "z": -2
+      }
+    },
+    {
+      "id": "licensed-0454-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "road straight crossing",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/road_straight_crossing.fbx",
+      "suggestedPosition": {
+        "x": 16.5,
+        "y": 0,
+        "z": -2
+      }
+    },
+    {
+      "id": "licensed-0453-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "road straight",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/road_straight.fbx",
+      "suggestedPosition": {
+        "x": -16.5,
+        "y": 0,
+        "z": 1
+      }
+    },
+    {
+      "id": "licensed-0455-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "road tsplit",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/road_tsplit.fbx",
+      "suggestedPosition": {
+        "x": -13.5,
+        "y": 0,
+        "z": 1
+      }
+    },
+    {
+      "id": "licensed-0456-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "streetlight",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/streetlight.fbx",
+      "suggestedPosition": {
+        "x": -10.5,
+        "y": 0,
+        "z": 1
+      }
+    },
+    {
+      "id": "licensed-0457-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "trafficlight A",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/trafficlight_A.fbx",
+      "suggestedPosition": {
+        "x": -7.5,
+        "y": 0,
+        "z": 1
+      }
+    },
+    {
+      "id": "licensed-0458-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "trafficlight B",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/trafficlight_B.fbx",
+      "suggestedPosition": {
+        "x": -4.5,
+        "y": 0,
+        "z": 1
+      }
+    },
+    {
+      "id": "licensed-0459-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "trafficlight C",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/trafficlight_C.fbx",
+      "suggestedPosition": {
+        "x": -1.5,
+        "y": 0,
+        "z": 1
+      }
+    },
+    {
+      "id": "licensed-0460-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "trash A",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/trash_A.fbx",
+      "suggestedPosition": {
+        "x": 1.5,
+        "y": 0,
+        "z": 1
+      }
+    },
+    {
+      "id": "licensed-0461-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "trash B",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/trash_B.fbx",
+      "suggestedPosition": {
+        "x": 4.5,
+        "y": 0,
+        "z": 1
+      }
+    },
+    {
+      "id": "licensed-0462-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "watertower",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx (unity)/watertower.fbx",
+      "suggestedPosition": {
+        "x": 7.5,
+        "y": 0,
+        "z": 1
+      }
+    },
+    {
+      "id": "licensed-0379-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "base",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/base.fbx",
+      "suggestedPosition": {
+        "x": 10.5,
+        "y": 0,
+        "z": 1
+      }
+    },
+    {
+      "id": "licensed-0380-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "bench",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/bench.fbx",
+      "suggestedPosition": {
+        "x": 13.5,
+        "y": 0,
+        "z": 1
+      }
+    },
+    {
+      "id": "licensed-0381-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "box A",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/box_A.fbx",
+      "suggestedPosition": {
+        "x": 16.5,
+        "y": 0,
+        "z": 1
+      }
+    },
+    {
+      "id": "licensed-0382-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "box B",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/box_B.fbx",
+      "suggestedPosition": {
+        "x": -16.5,
+        "y": 0,
+        "z": 4
+      }
+    },
+    {
+      "id": "licensed-0384-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building A withoutBase",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/building_A_withoutBase.fbx",
+      "suggestedPosition": {
+        "x": -13.5,
+        "y": 0,
+        "z": 4
+      }
+    },
+    {
+      "id": "licensed-0383-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building A",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/building_A.fbx",
+      "suggestedPosition": {
+        "x": -10.5,
+        "y": 0,
+        "z": 4
+      }
+    },
+    {
+      "id": "licensed-0386-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building B withoutBase",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/building_B_withoutBase.fbx",
+      "suggestedPosition": {
+        "x": -7.5,
+        "y": 0,
+        "z": 4
+      }
+    },
+    {
+      "id": "licensed-0385-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building B",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/building_B.fbx",
+      "suggestedPosition": {
+        "x": -4.5,
+        "y": 0,
+        "z": 4
+      }
+    },
+    {
+      "id": "licensed-0388-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building C withoutBase",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/building_C_withoutBase.fbx",
+      "suggestedPosition": {
+        "x": -1.5,
+        "y": 0,
+        "z": 4
+      }
+    },
+    {
+      "id": "licensed-0387-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building C",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/building_C.fbx",
+      "suggestedPosition": {
+        "x": 1.5,
+        "y": 0,
+        "z": 4
+      }
+    },
+    {
+      "id": "licensed-0390-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building D withoutBase",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/building_D_withoutBase.fbx",
+      "suggestedPosition": {
+        "x": 4.5,
+        "y": 0,
+        "z": 4
+      }
+    },
+    {
+      "id": "licensed-0389-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building D",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/building_D.fbx",
+      "suggestedPosition": {
+        "x": 7.5,
+        "y": 0,
+        "z": 4
+      }
+    },
+    {
+      "id": "licensed-0392-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building E withoutBase",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/building_E_withoutBase.fbx",
+      "suggestedPosition": {
+        "x": 10.5,
+        "y": 0,
+        "z": 4
+      }
+    },
+    {
+      "id": "licensed-0391-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building E",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/building_E.fbx",
+      "suggestedPosition": {
+        "x": 13.5,
+        "y": 0,
+        "z": 4
+      }
+    },
+    {
+      "id": "licensed-0394-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building F withoutBase",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/building_F_withoutBase.fbx",
+      "suggestedPosition": {
+        "x": 16.5,
+        "y": 0,
+        "z": 4
+      }
+    },
+    {
+      "id": "licensed-0393-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building F",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/building_F.fbx",
+      "suggestedPosition": {
+        "x": -16.5,
+        "y": 0,
+        "z": 7
+      }
+    },
+    {
+      "id": "licensed-0396-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building G withoutBase",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/building_G_withoutBase.fbx",
+      "suggestedPosition": {
+        "x": -13.5,
+        "y": 0,
+        "z": 7
+      }
+    },
+    {
+      "id": "licensed-0395-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building G",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/building_G.fbx",
+      "suggestedPosition": {
+        "x": -10.5,
+        "y": 0,
+        "z": 7
+      }
+    },
+    {
+      "id": "licensed-0398-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building H withoutBase",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/building_H_withoutBase.fbx",
+      "suggestedPosition": {
+        "x": -7.5,
+        "y": 0,
+        "z": 7
+      }
+    },
+    {
+      "id": "licensed-0397-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building H",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/building_H.fbx",
+      "suggestedPosition": {
+        "x": -4.5,
+        "y": 0,
+        "z": 7
+      }
+    },
+    {
+      "id": "licensed-0399-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "bush",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/bush.fbx",
+      "suggestedPosition": {
+        "x": -1.5,
+        "y": 0,
+        "z": 7
+      }
+    },
+    {
+      "id": "licensed-0400-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "car hatchback",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/car_hatchback.fbx",
+      "suggestedPosition": {
+        "x": 1.5,
+        "y": 0,
+        "z": 7
+      }
+    },
+    {
+      "id": "licensed-0401-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "car police",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/car_police.fbx",
+      "suggestedPosition": {
+        "x": 4.5,
+        "y": 0,
+        "z": 7
+      }
+    },
+    {
+      "id": "licensed-0402-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "car sedan",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/car_sedan.fbx",
+      "suggestedPosition": {
+        "x": 7.5,
+        "y": 0,
+        "z": 7
+      }
+    },
+    {
+      "id": "licensed-0403-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "car stationwagon",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/car_stationwagon.fbx",
+      "suggestedPosition": {
+        "x": 10.5,
+        "y": 0,
+        "z": 7
+      }
+    },
+    {
+      "id": "licensed-0404-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "car taxi",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/car_taxi.fbx",
+      "suggestedPosition": {
+        "x": 13.5,
+        "y": 0,
+        "z": 7
+      }
+    },
+    {
+      "id": "licensed-0406-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "dumpster",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/dumpster.fbx",
+      "suggestedPosition": {
+        "x": 16.5,
+        "y": 0,
+        "z": 7
+      }
+    },
+    {
+      "id": "licensed-0407-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "firehydrant",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/firehydrant.fbx",
+      "suggestedPosition": {
+        "x": -16.5,
+        "y": 0,
+        "z": 10
+      }
+    },
+    {
+      "id": "licensed-0409-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "road corner curved",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/road_corner_curved.fbx",
+      "suggestedPosition": {
+        "x": -13.5,
+        "y": 0,
+        "z": 10
+      }
+    },
+    {
+      "id": "licensed-0408-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "road corner",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/road_corner.fbx",
+      "suggestedPosition": {
+        "x": -10.5,
+        "y": 0,
+        "z": 10
+      }
+    },
+    {
+      "id": "licensed-0410-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "road junction",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/road_junction.fbx",
+      "suggestedPosition": {
+        "x": -7.5,
+        "y": 0,
+        "z": 10
+      }
+    },
+    {
+      "id": "licensed-0412-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "road straight crossing",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/road_straight_crossing.fbx",
+      "suggestedPosition": {
+        "x": -4.5,
+        "y": 0,
+        "z": 10
+      }
+    },
+    {
+      "id": "licensed-0411-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "road straight",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/road_straight.fbx",
+      "suggestedPosition": {
+        "x": -1.5,
+        "y": 0,
+        "z": 10
+      }
+    },
+    {
+      "id": "licensed-0413-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "road tsplit",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/road_tsplit.fbx",
+      "suggestedPosition": {
+        "x": 1.5,
+        "y": 0,
+        "z": 10
+      }
+    },
+    {
+      "id": "licensed-0414-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "streetlight",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/streetlight.fbx",
+      "suggestedPosition": {
+        "x": 4.5,
+        "y": 0,
+        "z": 10
+      }
+    },
+    {
+      "id": "licensed-0415-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "trafficlight A",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/trafficlight_A.fbx",
+      "suggestedPosition": {
+        "x": 7.5,
+        "y": 0,
+        "z": 10
+      }
+    },
+    {
+      "id": "licensed-0416-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "trafficlight B",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/trafficlight_B.fbx",
+      "suggestedPosition": {
+        "x": 10.5,
+        "y": 0,
+        "z": 10
+      }
+    },
+    {
+      "id": "licensed-0417-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "trafficlight C",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/trafficlight_C.fbx",
+      "suggestedPosition": {
+        "x": 13.5,
+        "y": 0,
+        "z": 10
+      }
+    },
+    {
+      "id": "licensed-0418-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "trash A",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/trash_A.fbx",
+      "suggestedPosition": {
+        "x": 16.5,
+        "y": 0,
+        "z": 10
+      }
+    },
+    {
+      "id": "licensed-0419-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "trash B",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/trash_B.fbx",
+      "suggestedPosition": {
+        "x": -16.5,
+        "y": 0,
+        "z": 13
+      }
+    },
+    {
+      "id": "licensed-0420-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "watertower",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "fbx",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/fbx/watertower.fbx",
+      "suggestedPosition": {
+        "x": -13.5,
+        "y": 0,
+        "z": 13
+      }
+    },
+    {
+      "id": "licensed-0463-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "base",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "gltf",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/gltf/base.gltf",
+      "suggestedPosition": {
+        "x": -10.5,
+        "y": 0,
+        "z": 13
+      }
+    },
+    {
+      "id": "licensed-0464-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "bench",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "gltf",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/gltf/bench.gltf",
+      "suggestedPosition": {
+        "x": -7.5,
+        "y": 0,
+        "z": 13
+      }
+    },
+    {
+      "id": "licensed-0465-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "box A",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "gltf",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/gltf/box_A.gltf",
+      "suggestedPosition": {
+        "x": -4.5,
+        "y": 0,
+        "z": 13
+      }
+    },
+    {
+      "id": "licensed-0466-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "box B",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "gltf",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/gltf/box_B.gltf",
+      "suggestedPosition": {
+        "x": -1.5,
+        "y": 0,
+        "z": 13
+      }
+    },
+    {
+      "id": "licensed-0468-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building A withoutBase",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "gltf",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/gltf/building_A_withoutBase.gltf",
+      "suggestedPosition": {
+        "x": 1.5,
+        "y": 0,
+        "z": 13
+      }
+    },
+    {
+      "id": "licensed-0467-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building A",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "gltf",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/gltf/building_A.gltf",
+      "suggestedPosition": {
+        "x": 4.5,
+        "y": 0,
+        "z": 13
+      }
+    },
+    {
+      "id": "licensed-0470-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building B withoutBase",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "gltf",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/gltf/building_B_withoutBase.gltf",
+      "suggestedPosition": {
+        "x": 7.5,
+        "y": 0,
+        "z": 13
+      }
+    },
+    {
+      "id": "licensed-0469-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building B",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "gltf",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/gltf/building_B.gltf",
+      "suggestedPosition": {
+        "x": 10.5,
+        "y": 0,
+        "z": 13
+      }
+    },
+    {
+      "id": "licensed-0472-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building C withoutBase",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "gltf",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/gltf/building_C_withoutBase.gltf",
+      "suggestedPosition": {
+        "x": 13.5,
+        "y": 0,
+        "z": 13
+      }
+    },
+    {
+      "id": "licensed-0471-desktop-import-kaykit-city-builder-bits-1-",
+      "title": "building C",
+      "sourcePack": "KayKit_City_Builder_Bits_1.0_FREE",
+      "fileExt": "gltf",
+      "renderUrl": "/licensed-assets/desktop-import/KayKit_City_Builder_Bits_1.0_FREE/KayKit_City_Builder_Bits_1.0_FREE/Assets/gltf/building_C.gltf",
+      "suggestedPosition": {
+        "x": 16.5,
+        "y": 0,
+        "z": 13
+      }
+    }
+  ]
+}

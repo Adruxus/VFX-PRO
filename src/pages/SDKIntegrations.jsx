@@ -3,94 +3,158 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Separator } from '@/components/ui/separator'
-import { ExternalLink, Check, Download, Zap } from 'lucide-react'
-import SDKS from '@/config/sdks-data.json'
+import { ArrowSquareOut, Cube, Cpu, CheckCircle } from '@/components/icons/futureIcons'
+import sdkData from '@/config/sdks-data.json'
+
+const THREE_D_ENGINES = [
+    {
+        id: 'unreal-engine-5',
+        name: 'Unreal Engine 5',
+        description: 'Native UE5 export profile for high-end cinematic and real-time stage visuals.',
+        formats: ['uasset', 'fbx', 'glb', 'mp4', 'mov'],
+        features: [
+            'Niagara-ready particle payloads',
+            'Sequencer-safe loop timing',
+            'Blueprint metadata for automation',
+            'Optimized texture packaging',
+        ],
+        docs: 'https://dev.epicgames.com/documentation/en-us/unreal-engine',
+    },
+    {
+        id: 'unity-3d',
+        name: 'Unity 3D',
+        description: 'Unity asset pipeline with Shader Graph and VFX Graph focused exports.',
+        formats: ['prefab', 'mat', 'shadergraph', 'mp4', 'png'],
+        features: [
+            'URP and HDRP compatible output',
+            'Timeline cue compatibility',
+            'VFX Graph particle templates',
+            'Addressables-friendly bundles',
+        ],
+        docs: 'https://docs.unity3d.com',
+    },
+]
 
 export default function SDKIntegrations() {
-    const primary = SDKS.find(s => s.primary)
-    const rest = SDKS.filter(s => !s.primary)
+    const integrations = Array.isArray(sdkData?.sdks) ? sdkData.sdks : []
+    const assetTypes = Array.isArray(sdkData?.assetTypes) ? sdkData.assetTypes : []
+
     return (
         <>
             <Helmet><title>SDK and Integrations - VJ Studio Pro</title></Helmet>
-            <div className="space-y-10">
-                <div className="text-center space-y-3">
-                    <Badge variant="outline">9 Integrations</Badge>
-                    <h1 className="text-4xl font-bold text-white mt-2">SDK and Integrations</h1>
-                    <p className="text-xl text-gray-400 max-w-2xl mx-auto">Native support for every major VJ platform</p>
+            <div className='space-y-10'>
+                <div className='text-center space-y-3'>
+                    <Badge variant='outline'>Integrations Hub</Badge>
+                    <h1 className='text-4xl font-bold text-white'>SDK and Integrations</h1>
+                    <p className='text-xl text-gray-400 max-w-2xl mx-auto'>
+                        Unreal 3D Engine, Unity, and VJ software integrations from one export pipeline.
+                    </p>
                 </div>
 
-                <Card className="border-purple-500/50 bg-gradient-to-br from-purple-900/30 to-pink-900/20">
-                    <CardHeader>
-                        <CardTitle className="text-white text-2xl">{primary.name}</CardTitle>
-                        <CardDescription className="text-gray-300">{primary.desc}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="flex flex-wrap gap-2">
-                            {primary.features.map(f => <Badge key={f} variant="outline">{f}</Badge>)}
-                        </div>
-                        <div className="bg-slate-950 rounded-lg p-4">
-                            <code className="text-purple-400 text-sm font-mono">{primary.install}</code>
-                            <Separator className="my-3" />
-                            <pre className="text-sm text-gray-300 font-mono whitespace-pre-wrap">
-                {Array.isArray(primary.code) ? primary.code.join(String.fromCharCode(10)) : primary.code}
-              </pre>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <div>
-                    <h2 className="text-2xl font-bold text-white mb-6">VJ Software and Tools</h2>
-                    <div className="grid gap-6 md:grid-cols-2">
-                        {rest.map(sdk => (
-                            <Card key={sdk.id} className="hover:border-purple-500/40 transition-all">
+                <section className='space-y-4'>
+                    <h2 className='text-2xl font-bold text-white'>3D Engines</h2>
+                    <div className='grid gap-6 lg:grid-cols-2'>
+                        {THREE_D_ENGINES.map((engine) => (
+                            <Card key={engine.id} className='border-purple-500/30 bg-gradient-to-br from-slate-900 to-slate-900/40'>
                                 <CardHeader>
-                                    <CardTitle className="text-white text-lg">{sdk.name}</CardTitle>
-                                    <CardDescription className="text-gray-400 text-sm">{sdk.desc}</CardDescription>
+                                    <CardTitle className='text-white flex items-center gap-2'>
+                                        <Cube className='w-5 h-5 text-purple-400' />
+                                        {engine.name}
+                                    </CardTitle>
+                                    <CardDescription className='text-gray-300'>{engine.description}</CardDescription>
                                 </CardHeader>
-                                <CardContent>
-                                    <Tabs defaultValue="formats">
-                                        <TabsList className="w-full grid grid-cols-3">
-                                            <TabsTrigger value="formats">Formats</TabsTrigger>
-                                            <TabsTrigger value="features">Features</TabsTrigger>
-                                            <TabsTrigger value="code">Code</TabsTrigger>
-                                        </TabsList>
-                                        <TabsContent value="formats" className="mt-3">
-                                            <div className="flex flex-wrap gap-2">
-                                                {sdk.formats.map(f => <Badge key={f} variant="outline">{f}</Badge>)}
-                                            </div>
-                                        </TabsContent>
-                                        <TabsContent value="features" className="mt-3">
-                                            <ul className="space-y-1.5">
-                                                {sdk.features.map(f => (
-                                                    <li key={f} className="flex items-center gap-2 text-sm text-gray-300">
-                                                        <Check className="w-3.5 h-3.5 text-purple-400" />{f}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </TabsContent>
-                                        <TabsContent value="code" className="mt-3">
-                      <pre className="bg-slate-950 rounded-lg p-3 text-xs text-gray-300 font-mono whitespace-pre-wrap">
-                        {Array.isArray(sdk.code) ? sdk.code.join(String.fromCharCode(10)) : sdk.code}
-                      </pre>
-                                        </TabsContent>
-                                    </Tabs>
-                                    <div className="flex gap-2 mt-4">
-                                        <Button variant="outline" size="sm" className="flex-1" asChild>
-                                            <a href={sdk.docs} target="_blank" rel="noopener noreferrer">
-                                                <ExternalLink className="w-3.5 h-3.5 mr-1.5" />Docs
-                                            </a>
-                                        </Button>
-                                        <Button variant="gradient" size="sm" className="flex-1">
-                                            <Download className="w-3.5 h-3.5 mr-1.5" />Install
-                                        </Button>
+                                <CardContent className='space-y-4'>
+                                    <div className='flex flex-wrap gap-2'>
+                                        {engine.formats.map((format) => (
+                                            <Badge key={format} variant='outline' className='uppercase'>{format}</Badge>
+                                        ))}
                                     </div>
+                                    <ul className='space-y-2 text-sm text-gray-300'>
+                                        {engine.features.map((feature) => (
+                                            <li key={feature} className='flex items-start gap-2'>
+                                                <CheckCircle className='w-4 h-4 text-purple-400 mt-0.5' />
+                                                <span>{feature}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <Button variant='outline' size='sm' asChild>
+                                        <a href={engine.docs} target='_blank' rel='noopener noreferrer'>
+                                            <ArrowSquareOut className='w-3.5 h-3.5 mr-1.5' />
+                                            Open docs
+                                        </a>
+                                    </Button>
                                 </CardContent>
                             </Card>
                         ))}
                     </div>
-                </div>
+                </section>
+
+                <section className='space-y-4'>
+                    <h2 className='text-2xl font-bold text-white'>VJ Software and Tools</h2>
+                    <div className='grid gap-6 md:grid-cols-2'>
+                        {integrations.map((sdk) => (
+                            <Card key={sdk.id} className='hover:border-purple-500/40 transition-all'>
+                                <CardHeader>
+                                    <CardTitle className='text-white text-lg flex items-center gap-2'>
+                                        <span>{sdk.logo || '•'}</span>
+                                        {sdk.name}
+                                    </CardTitle>
+                                    <CardDescription className='text-gray-400 text-sm'>{sdk.description}</CardDescription>
+                                </CardHeader>
+                                <CardContent className='space-y-4'>
+                                    <Tabs defaultValue='formats'>
+                                        <TabsList className='w-full grid grid-cols-2'>
+                                            <TabsTrigger value='formats'>Formats</TabsTrigger>
+                                            <TabsTrigger value='features'>Features</TabsTrigger>
+                                        </TabsList>
+                                        <TabsContent value='formats' className='mt-3'>
+                                            <div className='flex flex-wrap gap-2'>
+                                                {(sdk.formats || []).map((format) => (
+                                                    <Badge key={format} variant='outline' className='uppercase'>{format}</Badge>
+                                                ))}
+                                            </div>
+                                        </TabsContent>
+                                        <TabsContent value='features' className='mt-3'>
+                                            <ul className='space-y-1.5'>
+                                                {(sdk.features || ['Format support']).map((feature) => (
+                                                    <li key={feature} className='flex items-center gap-2 text-sm text-gray-300'>
+                                                        <CheckCircle className='w-3.5 h-3.5 text-purple-400' />
+                                                        {feature}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </TabsContent>
+                                    </Tabs>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                </section>
+
+                <section className='space-y-4'>
+                    <h2 className='text-2xl font-bold text-white'>Supported Asset Types</h2>
+                    <Card className='bg-slate-900/40 border-purple-500/20'>
+                        <CardContent className='pt-6'>
+                            <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-3'>
+                                {assetTypes.map((assetType) => (
+                                    <div key={assetType.id} className='rounded-lg border border-purple-500/20 bg-slate-950/60 p-3'>
+                                        <div className='flex items-center gap-2 mb-2'>
+                                            <Cpu className='w-4 h-4 text-purple-400' />
+                                            <p className='text-sm font-semibold text-white'>{assetType.name}</p>
+                                        </div>
+                                        <div className='flex flex-wrap gap-1.5'>
+                                            {(assetType.formats || []).map((format) => (
+                                                <Badge key={format} variant='outline' className='text-[10px] uppercase'>{format}</Badge>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </section>
             </div>
         </>
     )
 }
+

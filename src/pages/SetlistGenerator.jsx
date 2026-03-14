@@ -3,26 +3,40 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { useState, useCallback, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Upload, Music, Wand2, Download, Play, Sparkles, Clock, Zap } from 'lucide-react'
+import { UploadSimple, MusicNotes, MagicWand, DownloadSimple, Play, Sparkle, Clock, Lightning } from '@/components/icons/futureIcons'
 import { toast } from 'sonner'
 import { analyzeAudio, getCredits } from '@/services/backend'
 import { useUser } from '@clerk/clerk-react'
-import { parseMetadata, analyzeEnergy } from '@/services/audioAnalysis'
+import { parseMetadata } from '@/services/audioAnalysis'
+import { useAccessControl } from '@/services/accessControl'
 
 export default function SetlistGenerator() {
     const { user } = useUser()
+    const { effectivePlan } = useAccessControl()
     const [audioFiles, setAudioFiles] = useState([])
     const [analyzing, setAnalyzing] = useState(false)
     const [setlist, setSetlist] = useState(null)
     const [credits, setCredits] = useState(100)
 
     useEffect(() => {
+        let active = true
         if (user) {
-            getCredits(user.id).then(data => {
-                setCredits(data.credits || 0)
-            })
+            getCredits(user.id, effectivePlan)
+                .then(data => {
+                    if (!active) return
+                    setCredits(data.credits || 0)
+                })
+                .catch(() => {
+                    if (!active) return
+                    setCredits(0)
+                })
+        } else {
+            setCredits(100)
         }
-    }, [user])
+        return () => {
+            active = false
+        }
+    }, [effectivePlan, user])
 
     const onDrop = useCallback(async (acceptedFiles) => {
         const audio = acceptedFiles.filter(f =>
@@ -38,13 +52,13 @@ export default function SetlistGenerator() {
                 const metadata = await parseMetadata(file)
                 return {
                     file,
-                    name: file.name.replace(/\.(mp3|wav)$/i, ''),
+                    name: metadata.title || file.name.replace(/\.(mp3|wav)$/i, ''),
                     duration: metadata.duration || 180,
-                    bpm: metadata.bpm || Math.floor(Math.random() * 60) + 100,
+                    bpm: metadata.bpm || 120,
                     key: metadata.key || null,
                     energy: 0.5
                 }
-            } catch (e) {
+            } catch {
                 return {
                     file,
                     name: file.name.replace(/\.(mp3|wav)$/i, ''),
@@ -84,6 +98,7 @@ export default function SetlistGenerator() {
         try {
             const result = await analyzeAudio({
                 userId: user.id,
+                userTier: effectivePlan,
                 email: user.primaryEmailAddress?.emailAddress,
                 tracks: audioFiles.map(f => ({
                     name: f.name,
@@ -122,7 +137,7 @@ export default function SetlistGenerator() {
                         <p className="text-gray-400">Upload music and get AI-generated visual storyboards</p>
                     </div>
                     <div className="flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/20 rounded-lg">
-                        <Sparkles className="w-4 h-4 text-purple-400" />
+                        <Sparkle className="w-4 h-4 text-purple-400" />
                         <span className="text-sm font-medium text-purple-400">{credits} Credits</span>
                     </div>
                 </div>
@@ -131,7 +146,7 @@ export default function SetlistGenerator() {
                     <Card className="bg-slate-900/50 border-purple-500/20">
                         <CardHeader>
                             <CardTitle className="text-white flex items-center gap-2">
-                                <Music className="w-5 h-5" />Upload Audio Files
+                                <MusicNotes className="w-5 h-5" />Upload Audio Files
                             </CardTitle>
                             <CardDescription className="text-gray-400">
                                 MP3/WAV files - AI analyzes BPM, key, energy, creates visual suggestions
@@ -140,7 +155,7 @@ export default function SetlistGenerator() {
                         <CardContent>
                             <div {...getRootProps()} className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer ${isDragActive ? 'border-purple-500 bg-purple-500/10' : 'border-purple-500/20 hover:border-purple-500/40'}`}>
                                 <input {...getInputProps()} />
-                                <Upload className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+                                <UploadSimple className="w-12 h-12 text-purple-400 mx-auto mb-4" />
                                 <p className="text-white font-medium mb-2">
                                     {isDragActive ? 'Drop files here...' : 'Drag & drop audio files'}
                                 </p>
@@ -153,7 +168,7 @@ export default function SetlistGenerator() {
                                     <div className="space-y-2 max-h-60 overflow-y-auto">
                                         {audioFiles.map((file, i) => (
                                             <div key={i} className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg">
-                                                <Music className="w-4 h-4 text-purple-400" />
+                                                <MusicNotes className="w-4 h-4 text-purple-400" />
                                                 <span className="text-white text-sm flex-1">{file.name}</span>
                                                 <span className="text-gray-400 text-xs">{Math.floor(file.duration/60)}:{(file.duration%60).toString().padStart(2,'0')}</span>
                                                 <span className="text-gray-400 text-xs">{file.bpm} BPM</span>
@@ -170,9 +185,9 @@ export default function SetlistGenerator() {
                                             className="bg-gradient-to-r from-purple-500 to-pink-500"
                                         >
                                             {analyzing ? (
-                                                <><Sparkles className="w-4 h-4 mr-2 animate-spin" />Analyzing...</>
+                                                <><Sparkle className="w-4 h-4 mr-2 animate-spin" />Analyzing...</>
                                             ) : (
-                                                <><Wand2 className="w-4 h-4 mr-2" />Generate Setlist</>
+                                                <><MagicWand className="w-4 h-4 mr-2" />Generate Setlist</>
                                             )}
                                         </Button>
                                     </div>
@@ -193,7 +208,7 @@ export default function SetlistGenerator() {
                             <div className="flex gap-3">
                                 <Button variant="outline" className="border-purple-500/20" onClick={() => setSetlist(null)}>New Set</Button>
                                 <Button className="bg-gradient-to-r from-purple-500 to-pink-500">
-                                    <Download className="w-4 h-4 mr-2" />Export
+                                    <DownloadSimple className="w-4 h-4 mr-2" />Export
                                 </Button>
                             </div>
                         </div>
@@ -208,7 +223,7 @@ export default function SetlistGenerator() {
                                             </CardTitle>
                                             <div className="flex items-center gap-4 mt-2 text-sm text-gray-400">
                                                 <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{Math.floor(track.duration/60)}:{(track.duration%60).toString().padStart(2,'0')}</span>
-                                                <span className="flex items-center gap-1"><Zap className="w-3 h-3" />{track.bpm} BPM</span>
+                                                <span className="flex items-center gap-1"><Lightning className="w-3 h-3" />{track.bpm} BPM</span>
                                                 <span>Key: {track.key}</span>
                                                 <span className="px-2 py-1 bg-purple-500/10 border border-purple-500/20 rounded text-purple-400">{track.mood}</span>
                                             </div>
@@ -248,3 +263,4 @@ export default function SetlistGenerator() {
         </>
     )
 }
+

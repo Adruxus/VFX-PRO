@@ -1,5 +1,4 @@
-import React from 'react'
-import { ClerkProvider, SignIn, SignUp, UserButton, useUser, useAuth } from '@clerk/clerk-react'
+import { ClerkProvider, UserButton, useAuth } from '@clerk/clerk-react'
 
 const PK = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_placeholder'
 
@@ -12,7 +11,7 @@ export function AuthProvider({ children }) {
 }
 
 export function AuthGuard({ children }) {
-    const { isSignedIn, isLoaded } = useAuth()
+    const { isLoaded } = useAuth()
     if (!isLoaded) return <div className='flex justify-center p-20'><div className='w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin' /></div>
     return children
 }
@@ -20,5 +19,3 @@ export function AuthGuard({ children }) {
 export function UserAvatar() {
     return <UserButton afterSignOutUrl='/' />
 }
-
-export { useUser, useAuth, SignIn, SignUp }

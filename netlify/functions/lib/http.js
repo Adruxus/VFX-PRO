@@ -1,8 +1,56 @@
-const CORS_HEADERS = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers':
-        'Content-Type, Authorization, X-Request-Id, X-Orchestrator-Token, X-Webhook-Signature, X-Provider-Signature, X-Webhook-Timestamp, X-Provider-Timestamp',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+const DEFAULT_ALLOWED_ORIGINS = [
+    'https://vfx-studios.com',
+    'https://www.vfx-studios.com',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]
+
+function parseAllowedOrigins() {
+    const configured = String(process.env.CORS_ALLOW_ORIGINS || process.env.CORS_ALLOW_ORIGIN || '')
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean)
+    return configured.length > 0 ? configured : DEFAULT_ALLOWED_ORIGINS
+}
+
+const ALLOWED_ORIGINS = parseAllowedOrigins()
+
+function getHeaderValue(event, name) {
+    const headers = event?.headers || {}
+    if (headers[name] != null) return String(headers[name]).trim()
+    const target = String(name || '').toLowerCase()
+    for (const [key, value] of Object.entries(headers)) {
+        if (String(key).toLowerCase() === target) return String(value || '').trim()
+    }
+    return ''
+}
+
+function pickAllowedOrigin(event) {
+    const requestedOrigin = getHeaderValue(event, 'origin')
+    if (!requestedOrigin) return ALLOWED_ORIGINS[0] || ''
+    return ALLOWED_ORIGINS.includes(requestedOrigin) ? requestedOrigin : ''
+}
+
+export function corsHeadersForEvent(event) {
+    const allowedOrigin = pickAllowedOrigin(event)
+    return {
+        'Access-Control-Allow-Origin': allowedOrigin || 'null',
+        'Access-Control-Allow-Headers':
+            'Content-Type, Authorization, X-Request-Id, X-Orchestrator-Token, X-Webhook-Signature, X-Provider-Signature, X-Webhook-Timestamp, X-Provider-Timestamp',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        Vary: 'Origin',
+    }
+}
+
+export function withCors(event, response) {
+    if (!response || typeof response !== 'object') return response
+    return {
+        ...response,
+        headers: {
+            ...(response.headers || {}),
+            ...corsHeadersForEvent(event),
+        },
+    }
 }
 
 export function json(statusCode, payload, extraHeaders = {}) {
@@ -10,7 +58,7 @@ export function json(statusCode, payload, extraHeaders = {}) {
         statusCode,
         headers: {
             'Content-Type': 'application/json',
-            ...CORS_HEADERS,
+            ...corsHeadersForEvent(null),
             ...extraHeaders,
         },
         body: JSON.stringify(payload),
@@ -21,7 +69,7 @@ export function noContent() {
     return {
         statusCode: 204,
         headers: {
-            ...CORS_HEADERS,
+            ...corsHeadersForEvent(null),
         },
         body: '',
     }

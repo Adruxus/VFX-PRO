@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vjstudio.pro/schemas/asset-meta.schema.json",
+  "title": "AssetMeta",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "version",
+    "duration",
+    "fps",
+    "resolution",
+    "loop_type",
+    "tempo_bpm",
+    "asset_type",
+    "export_targets",
+    "dominant_colors",
+    "tags",
+    "license",
+    "author",
+    "checksum_sha256",
+    "engine_compatibility",
+    "gpu_budget_ms",
+    "created_at",
+    "variant_index",
+    "dependencies",
+    "shader_params",
+    "animation_clips"
+  ],
+  "properties": {
+    "id": { "type": "string", "minLength": 3 },
+    "name": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "duration": { "type": "number", "minimum": 0.1 },
+    "fps": { "type": "integer", "minimum": 1 },
+    "resolution": { "type": "string", "pattern": "^\\d{3,5}x\\d{3,5}$" },
+    "loop_type": { "type": "string" },
+    "tempo_bpm": {
+      "anyOf": [
+        { "type": "number", "minimum": 20, "maximum": 300 },
+        { "type": "null" }
+      ]
+    },
+    "asset_type": { "type": "string" },
+    "export_targets": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "dominant_colors": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "license": { "type": "string" },
+    "author": { "type": "string" },
+    "checksum_sha256": { "type": "string", "minLength": 4 },
+    "engine_compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unreal", "unity"],
+      "properties": {
+        "unreal": { "type": "boolean" },
+        "unity": { "type": "boolean" }
+      }
+    },
+    "gpu_budget_ms": {
+      "anyOf": [
+        { "type": "number", "minimum": 0 },
+        { "type": "null" }
+      ]
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "variant_index": { "type": "integer", "minimum": 0 },
+    "dependencies": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "shader_params": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "min", "max", "default"],
+        "properties": {
+          "key": { "type": "string" },
+          "min": { "type": "number" },
+          "max": { "type": "number" },
+          "default": { "type": "number" }
+        }
+      }
+    },
+    "animation_clips": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "start_frame", "end_frame", "seamless"],
+        "properties": {
+          "name": { "type": "string" },
+          "start_frame": { "type": "integer", "minimum": 0 },
+          "end_frame": { "type": "integer", "minimum": 0 },
+          "seamless": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}
